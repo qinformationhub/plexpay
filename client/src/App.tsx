@@ -81,7 +81,7 @@ function LoginForm() {
             </svg>
             <h1 className="text-2xl font-bold text-primary font-inter">PlexPay</h1>
           </div>
-          <CardTitle className="text-2xl text-center">Log in to your account</CardTitle>
+          <CardTitle className="text-2xl text-center">Sign in to your account</CardTitle>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -117,7 +117,7 @@ function LoginForm() {
                 className="w-full bg-secondary hover:bg-secondary/90" 
                 disabled={loginMutation.isPending}
               >
-                {loginMutation.isPending ? "Logging in..." : "Log in"}
+                {loginMutation.isPending ? "Signing in..." : "Sign in"}
               </Button>
               
               <div className="text-sm text-center text-gray-500 mt-4">

@@ -47,7 +47,7 @@ export default function Expenses() {
   const [_, navigate] = useLocation();
   const { toast } = useToast();
   const [search, setSearch] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
   
   const { data: expenses, isLoading: expensesLoading } = useQuery({
@@ -97,7 +97,7 @@ export default function Expenses() {
     const matchesSearch = search === "" || 
       expense.description.toLowerCase().includes(search.toLowerCase());
     
-    const matchesCategory = categoryFilter === "" || 
+    const matchesCategory = categoryFilter === "" || categoryFilter === "all" || 
       expense.categoryId === parseInt(categoryFilter);
     
     return matchesSearch && matchesCategory;
@@ -181,7 +181,7 @@ export default function Expenses() {
                   <SelectValue placeholder="All Categories" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Categories</SelectItem>
+                  <SelectItem value="all">All Categories</SelectItem>
                   {categories && categories.map((category: any) => (
                     <SelectItem key={category.id} value={category.id.toString()}>
                       {category.name}

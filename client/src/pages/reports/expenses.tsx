@@ -63,7 +63,7 @@ export default function ExpenseReport() {
     from: startOfMonth(subMonths(new Date(), 1)),
     to: endOfMonth(subMonths(new Date(), 1)),
   });
-  const [categoryFilter, setCategoryFilter] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
   
   const { data: expenses, isLoading: expensesLoading } = useQuery({
     queryKey: ['/api/expenses'],
@@ -92,7 +92,7 @@ export default function ExpenseReport() {
     const inDateRange = (!dateRange.from || expenseDate >= dateRange.from) &&
                       (!dateRange.to || expenseDate <= dateRange.to);
     
-    const matchesCategory = categoryFilter === "" || 
+    const matchesCategory = categoryFilter === "" || categoryFilter === "all" || 
       expense.categoryId === parseInt(categoryFilter);
     
     return inDateRange && matchesCategory;
@@ -327,7 +327,7 @@ export default function ExpenseReport() {
                     from: startOfMonth(subMonths(new Date(), 1)),
                     to: endOfMonth(subMonths(new Date(), 1))
                   });
-                  setCategoryFilter("");
+                  setCategoryFilter("all");
                 }}
               >
                 Reset Filters

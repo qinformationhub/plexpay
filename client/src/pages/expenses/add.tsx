@@ -150,7 +150,7 @@ export default function AddExpense() {
                   name="amount"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Amount ($)</FormLabel>
+                      <FormLabel>Amount (PKR)</FormLabel>
                       <FormControl>
                         <Input
                           type="number"

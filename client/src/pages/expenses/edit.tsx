@@ -172,7 +172,7 @@ export default function EditExpense({ params }: { params: { id: string } }) {
                   name="amount"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Amount ($)</FormLabel>
+                      <FormLabel>Amount (PKR)</FormLabel>
                       <FormControl>
                         <Input
                           type="number"

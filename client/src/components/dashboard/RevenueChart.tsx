@@ -19,12 +19,11 @@ export default function RevenueChart({ data }: RevenueChartProps) {
   const [activePeriod, setActivePeriod] = useState<Period>("quarter");
   
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
+    return new Intl.NumberFormat('ur-PK', {
+      style: 'decimal',
       notation: 'compact',
       maximumFractionDigits: 1
-    }).format(value);
+    }).format(value) + ' PKR';
   };
   
   return (

@@ -38,10 +38,11 @@ export default function Payroll() {
   });
   
   const formatCurrency = (amount: number | string) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(typeof amount === 'string' ? Number(amount) : amount);
+    return new Intl.NumberFormat('ur-PK', {
+      style: 'decimal',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(typeof amount === 'string' ? Number(amount) : amount) + ' PKR';
   };
   
   const filteredEmployees = employees 

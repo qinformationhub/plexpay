@@ -182,7 +182,7 @@ export default function Expenses() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="">All Categories</SelectItem>
-                  {categories.map((category: any) => (
+                  {categories && categories.map((category: any) => (
                     <SelectItem key={category.id} value={category.id.toString()}>
                       {category.name}
                     </SelectItem>

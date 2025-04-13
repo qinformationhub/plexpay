@@ -149,7 +149,7 @@ export default function Expenses() {
           <p className="text-gray-500 mt-1">Add, edit and manage your organizational expenses</p>
         </div>
         <Button 
-          className="mt-4 sm:mt-0 bg-secondary text-white hover:bg-secondary/90"
+          className="mt-4 sm:mt-0 bg-secondary text-black hover:bg-secondary/90"
           onClick={() => navigate("/expenses/add")}
         >
           <Plus className="mr-2 h-4 w-4" />

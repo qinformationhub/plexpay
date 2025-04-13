@@ -1,5 +1,6 @@
-import { pgTable, text, serial, integer, numeric, timestamp, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, numeric, timestamp, boolean, foreignKey } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
+import { relations } from "drizzle-orm";
 import { z } from "zod";
 
 // Users
@@ -125,6 +126,50 @@ export const insertIncomeRecordSchema = createInsertSchema(incomeRecords).pick({
   description: true,
   userId: true,
 });
+
+// Define relations
+export const usersRelations = relations(users, ({ many }) => ({
+  expenses: many(expenses),
+  payrollRecords: many(payrollRecords),
+  incomeRecords: many(incomeRecords),
+}));
+
+export const expenseCategoriesRelations = relations(expenseCategories, ({ many }) => ({
+  expenses: many(expenses),
+}));
+
+export const expensesRelations = relations(expenses, ({ one }) => ({
+  category: one(expenseCategories, {
+    fields: [expenses.categoryId],
+    references: [expenseCategories.id],
+  }),
+  user: one(users, {
+    fields: [expenses.userId],
+    references: [users.id],
+  }),
+}));
+
+export const employeesRelations = relations(employees, ({ many }) => ({
+  payrollRecords: many(payrollRecords),
+}));
+
+export const payrollRecordsRelations = relations(payrollRecords, ({ one }) => ({
+  employee: one(employees, {
+    fields: [payrollRecords.employeeId],
+    references: [employees.id],
+  }),
+  user: one(users, {
+    fields: [payrollRecords.userId],
+    references: [users.id],
+  }),
+}));
+
+export const incomeRecordsRelations = relations(incomeRecords, ({ one }) => ({
+  user: one(users, {
+    fields: [incomeRecords.userId],
+    references: [users.id],
+  }),
+}));
 
 // Export types
 export type User = typeof users.$inferSelect;

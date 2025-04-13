@@ -6,6 +6,8 @@ import {
   payrollRecords, type PayrollRecord, type InsertPayrollRecord,
   incomeRecords, type IncomeRecord, type InsertIncomeRecord
 } from "@shared/schema";
+import { db } from './db';
+import { eq, asc, desc } from 'drizzle-orm';
 
 export interface IStorage {
   // User methods
@@ -209,4 +211,134 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+export class DatabaseStorage implements IStorage {
+  // User Methods
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db.insert(users).values(insertUser).returning();
+    return user;
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    return await db.select().from(users);
+  }
+
+  // Expense Category Methods
+  async getExpenseCategory(id: number): Promise<ExpenseCategory | undefined> {
+    const [category] = await db.select().from(expenseCategories).where(eq(expenseCategories.id, id));
+    return category;
+  }
+
+  async getAllExpenseCategories(): Promise<ExpenseCategory[]> {
+    return await db.select().from(expenseCategories).orderBy(asc(expenseCategories.name));
+  }
+
+  async createExpenseCategory(insertCategory: InsertExpenseCategory): Promise<ExpenseCategory> {
+    const [category] = await db.insert(expenseCategories).values(insertCategory).returning();
+    return category;
+  }
+
+  // Expense Methods
+  async getExpense(id: number): Promise<Expense | undefined> {
+    const [expense] = await db.select().from(expenses).where(eq(expenses.id, id));
+    return expense;
+  }
+
+  async getAllExpenses(): Promise<Expense[]> {
+    return await db.select().from(expenses).orderBy(desc(expenses.date));
+  }
+
+  async createExpense(insertExpense: InsertExpense): Promise<Expense> {
+    const [expense] = await db.insert(expenses).values(insertExpense).returning();
+    return expense;
+  }
+
+  async updateExpense(id: number, updateData: InsertExpense): Promise<Expense | undefined> {
+    const [expense] = await db
+      .update(expenses)
+      .set(updateData)
+      .where(eq(expenses.id, id))
+      .returning();
+    return expense;
+  }
+
+  async deleteExpense(id: number): Promise<boolean> {
+    await db.delete(expenses).where(eq(expenses.id, id));
+    return true;
+  }
+
+  // Employee Methods
+  async getEmployee(id: number): Promise<Employee | undefined> {
+    const [employee] = await db.select().from(employees).where(eq(employees.id, id));
+    return employee;
+  }
+
+  async getAllEmployees(): Promise<Employee[]> {
+    return await db.select().from(employees).orderBy(asc(employees.name));
+  }
+
+  async createEmployee(insertEmployee: InsertEmployee): Promise<Employee> {
+    const [employee] = await db.insert(employees).values(insertEmployee).returning();
+    return employee;
+  }
+
+  async updateEmployee(id: number, updateData: InsertEmployee): Promise<Employee | undefined> {
+    const [employee] = await db
+      .update(employees)
+      .set(updateData)
+      .where(eq(employees.id, id))
+      .returning();
+    return employee;
+  }
+
+  // Payroll Record Methods
+  async getPayrollRecord(id: number): Promise<PayrollRecord | undefined> {
+    const [record] = await db.select().from(payrollRecords).where(eq(payrollRecords.id, id));
+    return record;
+  }
+
+  async getAllPayrollRecords(): Promise<PayrollRecord[]> {
+    return await db.select().from(payrollRecords).orderBy(desc(payrollRecords.processedOn));
+  }
+
+  async createPayrollRecord(insertRecord: InsertPayrollRecord): Promise<PayrollRecord> {
+    const [record] = await db.insert(payrollRecords).values(insertRecord).returning();
+    return record;
+  }
+
+  async updatePayrollRecord(id: number, updateData: InsertPayrollRecord): Promise<PayrollRecord | undefined> {
+    const [record] = await db
+      .update(payrollRecords)
+      .set(updateData)
+      .where(eq(payrollRecords.id, id))
+      .returning();
+    return record;
+  }
+
+  // Income Record Methods
+  async getIncomeRecord(id: number): Promise<IncomeRecord | undefined> {
+    const [record] = await db.select().from(incomeRecords).where(eq(incomeRecords.id, id));
+    return record;
+  }
+
+  async getAllIncomeRecords(): Promise<IncomeRecord[]> {
+    return await db.select().from(incomeRecords).orderBy(desc(incomeRecords.date));
+  }
+
+  async createIncomeRecord(insertRecord: InsertIncomeRecord): Promise<IncomeRecord> {
+    const [record] = await db.insert(incomeRecords).values(insertRecord).returning();
+    return record;
+  }
+}
+
+// Replace MemStorage with DatabaseStorage
+export const storage = new DatabaseStorage();

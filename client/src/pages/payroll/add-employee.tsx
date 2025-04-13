@@ -85,7 +85,11 @@ export default function AddEmployee() {
   });
 
   function onSubmit(values: FormValues) {
-    createEmployeeMutation.mutate(values);
+    const formattedValues = {
+      ...values,
+      dateHired: new Date(values.dateHired)
+    };
+    createEmployeeMutation.mutate(formattedValues);
   }
 
   return (

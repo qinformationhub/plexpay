@@ -101,7 +101,7 @@ export default function AddExpense() {
   function onSubmit(values: FormValues) {
     const formattedValues = {
       ...values,
-      date: new Date(values.date),
+      date: date?.toISOString() || new Date().toISOString(), // Format date as ISO string
       categoryId: Number(values.categoryId)
     };
     createExpenseMutation.mutate(formattedValues);

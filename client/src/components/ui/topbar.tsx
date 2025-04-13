@@ -37,7 +37,12 @@ export default function Topbar({ toggleSidebar, userName, notifications }: Topba
           >
             <Menu className="h-6 w-6" />
           </button>
-          <h1 className="text-xl font-semibold text-primary font-inter">Dashboard</h1>
+          <h1 className="text-xl font-semibold text-primary font-inter">
+            {window.location.pathname === "/" && "Dashboard"}
+            {window.location.pathname.startsWith("/expenses") && "Expenses"}
+            {window.location.pathname.startsWith("/payroll") && "Payroll"}
+            {window.location.pathname.startsWith("/reports") && "Reports"}
+          </h1>
         </div>
         <div className="flex items-center space-x-4">
           {/* Search */}

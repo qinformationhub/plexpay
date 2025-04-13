@@ -44,84 +44,89 @@ export default function Sidebar({ collapsed }: SidebarProps) {
         <nav className="flex-1 py-4 overflow-y-auto">
           <ul className="px-2 space-y-1">
             <li>
-              <Link href="/dashboard">
-                <a className={cn(
+              <Link 
+                href="/dashboard" 
+                className={cn(
                   "flex items-center px-4 py-3 rounded-md group",
                   isActive("/dashboard") || isActive("/") 
                     ? "bg-primary-700 text-white" 
                     : "text-gray-300 hover:bg-gray-700"
-                )}>
-                  <LayoutDashboard className={cn(
-                    "h-5 w-5", 
-                    isActive("/dashboard") || isActive("/") ? "text-secondary" : ""
-                  )} />
-                  {!collapsed && <span className="ml-3">Dashboard</span>}
-                </a>
+                )}
+              >
+                <LayoutDashboard className={cn(
+                  "h-5 w-5", 
+                  isActive("/dashboard") || isActive("/") ? "text-secondary" : ""
+                )} />
+                {!collapsed && <span className="ml-3">Dashboard</span>}
               </Link>
             </li>
             <li>
-              <Link href="/expenses">
-                <a className={cn(
+              <Link 
+                href="/expenses" 
+                className={cn(
                   "flex items-center px-4 py-3 rounded-md group",
                   isActive("/expenses") 
                     ? "bg-primary-700 text-white" 
                     : "text-gray-300 hover:bg-gray-700"
-                )}>
-                  <Receipt className={cn(
-                    "h-5 w-5", 
-                    isActive("/expenses") ? "text-secondary" : ""
-                  )} />
-                  {!collapsed && <span className="ml-3">Expenses</span>}
-                </a>
+                )}
+              >
+                <Receipt className={cn(
+                  "h-5 w-5", 
+                  isActive("/expenses") ? "text-secondary" : ""
+                )} />
+                {!collapsed && <span className="ml-3">Expenses</span>}
               </Link>
             </li>
             <li>
-              <Link href="/payroll">
-                <a className={cn(
+              <Link 
+                href="/payroll" 
+                className={cn(
                   "flex items-center px-4 py-3 rounded-md group",
                   isActive("/payroll") 
                     ? "bg-primary-700 text-white" 
                     : "text-gray-300 hover:bg-gray-700"
-                )}>
-                  <Users className={cn(
-                    "h-5 w-5", 
-                    isActive("/payroll") ? "text-secondary" : ""
-                  )} />
-                  {!collapsed && <span className="ml-3">Payroll</span>}
-                </a>
+                )}
+              >
+                <Users className={cn(
+                  "h-5 w-5", 
+                  isActive("/payroll") ? "text-secondary" : ""
+                )} />
+                {!collapsed && <span className="ml-3">Payroll</span>}
               </Link>
             </li>
             <li>
-              <Link href="/reports">
-                <a className={cn(
+              <Link 
+                href="/reports" 
+                className={cn(
                   "flex items-center px-4 py-3 rounded-md group",
                   isActive("/reports") 
                     ? "bg-primary-700 text-white" 
                     : "text-gray-300 hover:bg-gray-700"
-                )}>
-                  <BarChart3 className={cn(
-                    "h-5 w-5", 
-                    isActive("/reports") ? "text-secondary" : ""
-                  )} />
-                  {!collapsed && <span className="ml-3">Reports</span>}
-                </a>
+                )}
+              >
+                <BarChart3 className={cn(
+                  "h-5 w-5", 
+                  isActive("/reports") ? "text-secondary" : ""
+                )} />
+                {!collapsed && <span className="ml-3">Reports</span>}
               </Link>
             </li>
             {user?.role === "admin" && (
               <li>
-                <Link href="/settings">
-                  <a className={cn(
+                <Link 
+                  href="/settings" 
+                  className={cn(
                     "flex items-center px-4 py-3 rounded-md group",
                     isActive("/settings") 
                       ? "bg-primary-700 text-white" 
                       : "text-gray-300 hover:bg-gray-700"
-                  )}>
-                    <Settings className={cn(
-                      "h-5 w-5", 
-                      isActive("/settings") ? "text-secondary" : ""
-                    )} />
-                    {!collapsed && <span className="ml-3">Settings</span>}
-                  </a>
+                  )}
+                >
+                  <Settings className={cn(
+                    "h-5 w-5", 
+                    isActive("/settings") ? "text-secondary" : ""
+                  )} />
+                  {!collapsed && <span className="ml-3">Settings</span>}
                 </Link>
               </li>
             )}

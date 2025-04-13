@@ -101,7 +101,7 @@ export default function AddExpense() {
   function onSubmit(values: FormValues) {
     const formattedValues = {
       ...values,
-      date: new Date(values.date),
+      date: date || new Date(), // Use the date state value
       categoryId: Number(values.categoryId)
     };
     createExpenseMutation.mutate(formattedValues);

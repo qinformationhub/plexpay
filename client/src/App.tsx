@@ -114,7 +114,7 @@ function LoginForm() {
               />
               <Button 
                 type="submit" 
-                className="w-full bg-secondary hover:bg-secondary/90" 
+                className="w-full bg-secondary text-white hover:bg-secondary/90" 
                 disabled={loginMutation.isPending}
               >
                 {loginMutation.isPending ? "Signing in..." : "Sign in"}

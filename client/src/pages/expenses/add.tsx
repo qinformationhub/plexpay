@@ -75,7 +75,7 @@ export default function AddExpense() {
     mutationFn: async (values: FormValues) => {
       const res = await apiRequest("POST", "/api/expenses", {
         ...values,
-        date: date?.toISOString().split('T')[0], // Format as YYYY-MM-DD
+        date: date || new Date(),
         userId: user?.id,
       });
       return res.json();
@@ -101,7 +101,6 @@ export default function AddExpense() {
   function onSubmit(values: FormValues) {
     const formattedValues = {
       ...values,
-      date: date?.toISOString() || new Date().toISOString(), // Format date as ISO string
       categoryId: Number(values.categoryId)
     };
     createExpenseMutation.mutate(formattedValues);

@@ -158,6 +158,7 @@ function Router() {
         <Route path="/reports/expenses" component={ExpenseReport} />
         <Route path="/reports/payroll" component={PayrollReport} />
         <Route path="/reports/financial" component={FinancialReport} />
+        <Route path="/users" component={Users} />
         <Route component={NotFound} />
       </Switch>
     </AppLayout>

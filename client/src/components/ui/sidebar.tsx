@@ -39,7 +39,7 @@ export default function Sidebar({ collapsed }: SidebarProps) {
           </svg>
           {!collapsed && <span className="ml-2 text-xl font-semibold font-inter">PlexPay</span>}
         </div>
-        
+
         {/* Navigation Links */}
         <nav className="flex-1 py-4 overflow-y-auto">
           <ul className="px-2 space-y-1">
@@ -130,9 +130,23 @@ export default function Sidebar({ collapsed }: SidebarProps) {
                 </Link>
               </li>
             )}
+            {user?.role === 'admin' && (
+                <li>
+                  <Link
+                    href="/users"
+                    className={cn(
+                      "flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-accent",
+                      location === "/users" ? "bg-secondary text-secondary-foreground" : "transparent"
+                    )}
+                  >
+                    <Users className="h-4 w-4" />
+                    Users
+                  </Link>
+                </li>
+              )}
           </ul>
         </nav>
-        
+
         {/* User Profile */}
         <div className="border-t border-gray-700 p-4">
           <div className="flex items-center">

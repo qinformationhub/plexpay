@@ -141,17 +141,26 @@ export default function Dashboard() {
       
       {/* Key Metrics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-        <MetricsCard
-          title="Total Income"
-          value={formatCurrency(data?.metrics.totalIncome || 0)}
-          icon={<DollarSign className="h-6 w-6 text-accent" />}
-          iconBgColor="bg-green-100"
-          change={{
-            value: "12.3%",
-            type: "increase",
-            text: "+12.3% from last period"
-          }}
-        />
+        <div className="relative">
+          <MetricsCard
+            title="Total Income"
+            value={formatCurrency(data?.metrics.totalIncome || 0)}
+            icon={<DollarSign className="h-6 w-6 text-accent" />}
+            iconBgColor="bg-green-100"
+            change={{
+              value: "12.3%",
+              type: "increase",
+              text: "+12.3% from last period"
+            }}
+          />
+          <Button 
+            className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 bg-accent hover:bg-accent/90"
+            size="sm"
+            onClick={() => navigate("/income/add")}
+          >
+            Add Income
+          </Button>
+        </div>
         
         <MetricsCard
           title="Total Expenses"

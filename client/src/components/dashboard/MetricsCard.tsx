@@ -16,7 +16,10 @@ interface MetricsCardProps {
 
 export default function MetricsCard({ title, value, icon, iconBgColor, change }: MetricsCardProps) {
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6">
+    <div className={cn(
+  "bg-white rounded-lg shadow-sm p-6",
+  title === "Total Income" && "border-2 border-accent"
+)}>
       <div className="flex justify-between items-start">
         <div>
           <p className="text-gray-500 text-sm">{title}</p>

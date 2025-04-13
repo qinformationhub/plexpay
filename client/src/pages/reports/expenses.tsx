@@ -74,11 +74,10 @@ export default function ExpenseReport() {
   });
   
   const formatCurrency = (amount: number | string) => {
-    return new Intl.NumberFormat('ur-PK', {
-      style: 'decimal',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    }).format(typeof amount === 'string' ? Number(amount) : amount) + ' PKR';
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(typeof amount === 'string' ? Number(amount) : amount);
   };
   
   const getCategoryName = (categoryId: number) => {

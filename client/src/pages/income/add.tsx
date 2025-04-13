@@ -62,7 +62,7 @@ export default function AddIncome() {
     mutationFn: async (values: FormValues) => {
       const res = await apiRequest("POST", "/api/income-records", {
         ...values,
-        date: date,
+        date: date.toISOString(),
         userId: user?.id,
       });
       return res.json();

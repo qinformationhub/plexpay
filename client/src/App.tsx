@@ -8,6 +8,7 @@ import Dashboard from "@/pages/dashboard";
 import Expenses from "@/pages/expenses";
 import AddExpense from "@/pages/expenses/add";
 import EditExpense from "@/pages/expenses/edit";
+import AddIncome from "@/pages/income/add";
 import Payroll from "@/pages/payroll";
 import AddEmployee from "@/pages/payroll/add-employee";
 import EmployeeDetails from "@/pages/payroll/employee-details";

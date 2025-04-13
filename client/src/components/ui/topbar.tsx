@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Menu, Search, Bell, HelpCircle } from "lucide-react";
+import { useLocation } from "wouter";
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -37,7 +38,16 @@ export default function Topbar({ toggleSidebar, userName, notifications }: Topba
           >
             <Menu className="h-6 w-6" />
           </button>
-          <h1 className="text-xl font-semibold text-primary font-inter">Dashboard</h1>
+          <h1 className="text-xl font-semibold text-primary font-inter">
+            {(() => {
+              const [location] = useLocation();
+              if (location === "/") return "Dashboard";
+              if (location.startsWith("/expenses")) return "Expenses";
+              if (location.startsWith("/payroll")) return "Payroll";
+              if (location.startsWith("/reports")) return "Reports";
+              return "Dashboard";
+            })()}
+          </h1>
         </div>
         <div className="flex items-center space-x-4">
           {/* Search */}

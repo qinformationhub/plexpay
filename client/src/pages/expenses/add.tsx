@@ -99,7 +99,12 @@ export default function AddExpense() {
   });
 
   function onSubmit(values: FormValues) {
-    createExpenseMutation.mutate(values);
+    const formattedValues = {
+      ...values,
+      date: new Date(values.date),
+      categoryId: Number(values.categoryId)
+    };
+    createExpenseMutation.mutate(formattedValues);
   }
 
   if (categoriesLoading) {

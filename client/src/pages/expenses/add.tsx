@@ -75,7 +75,7 @@ export default function AddExpense() {
     mutationFn: async (values: FormValues) => {
       const res = await apiRequest("POST", "/api/expenses", {
         ...values,
-        date: date,
+        date: date?.toISOString().split('T')[0], // Format as YYYY-MM-DD
         userId: user?.id,
       });
       return res.json();

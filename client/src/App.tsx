@@ -148,6 +148,7 @@ function Router() {
         <Route path="/expenses" component={Expenses} />
         <Route path="/expenses/add" component={AddExpense} />
         <Route path="/expenses/edit/:id" component={EditExpense} />
+        <Route path="/income/add" component={AddIncome} />
         <Route path="/payroll" component={Payroll} />
         <Route path="/payroll/add-employee" component={AddEmployee} />
         <Route path="/payroll/employee/:id" component={EmployeeDetails} />

@@ -1,0 +1,212 @@
+import { 
+  users, type User, type InsertUser,
+  expenseCategories, type ExpenseCategory, type InsertExpenseCategory,
+  expenses, type Expense, type InsertExpense,
+  employees, type Employee, type InsertEmployee,
+  payrollRecords, type PayrollRecord, type InsertPayrollRecord,
+  incomeRecords, type IncomeRecord, type InsertIncomeRecord
+} from "@shared/schema";
+
+export interface IStorage {
+  // User methods
+  getUser(id: number): Promise<User | undefined>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+  createUser(user: InsertUser): Promise<User>;
+  getAllUsers(): Promise<User[]>;
+  
+  // Expense Category methods
+  getExpenseCategory(id: number): Promise<ExpenseCategory | undefined>;
+  getAllExpenseCategories(): Promise<ExpenseCategory[]>;
+  createExpenseCategory(category: InsertExpenseCategory): Promise<ExpenseCategory>;
+  
+  // Expense methods
+  getExpense(id: number): Promise<Expense | undefined>;
+  getAllExpenses(): Promise<Expense[]>;
+  createExpense(expense: InsertExpense): Promise<Expense>;
+  updateExpense(id: number, expense: InsertExpense): Promise<Expense | undefined>;
+  deleteExpense(id: number): Promise<boolean>;
+  
+  // Employee methods
+  getEmployee(id: number): Promise<Employee | undefined>;
+  getAllEmployees(): Promise<Employee[]>;
+  createEmployee(employee: InsertEmployee): Promise<Employee>;
+  updateEmployee(id: number, employee: InsertEmployee): Promise<Employee | undefined>;
+  
+  // Payroll Record methods
+  getPayrollRecord(id: number): Promise<PayrollRecord | undefined>;
+  getAllPayrollRecords(): Promise<PayrollRecord[]>;
+  createPayrollRecord(record: InsertPayrollRecord): Promise<PayrollRecord>;
+  updatePayrollRecord(id: number, record: InsertPayrollRecord): Promise<PayrollRecord | undefined>;
+  
+  // Income Record methods
+  getIncomeRecord(id: number): Promise<IncomeRecord | undefined>;
+  getAllIncomeRecords(): Promise<IncomeRecord[]>;
+  createIncomeRecord(record: InsertIncomeRecord): Promise<IncomeRecord>;
+}
+
+export class MemStorage implements IStorage {
+  private usersStore: Map<number, User>;
+  private expenseCategoriesStore: Map<number, ExpenseCategory>;
+  private expensesStore: Map<number, Expense>;
+  private employeesStore: Map<number, Employee>;
+  private payrollRecordsStore: Map<number, PayrollRecord>;
+  private incomeRecordsStore: Map<number, IncomeRecord>;
+  
+  private userIdCounter: number;
+  private expenseCategoryIdCounter: number;
+  private expenseIdCounter: number;
+  private employeeIdCounter: number;
+  private payrollRecordIdCounter: number;
+  private incomeRecordIdCounter: number;
+
+  constructor() {
+    this.usersStore = new Map();
+    this.expenseCategoriesStore = new Map();
+    this.expensesStore = new Map();
+    this.employeesStore = new Map();
+    this.payrollRecordsStore = new Map();
+    this.incomeRecordsStore = new Map();
+    
+    this.userIdCounter = 1;
+    this.expenseCategoryIdCounter = 1;
+    this.expenseIdCounter = 1;
+    this.employeeIdCounter = 1;
+    this.payrollRecordIdCounter = 1;
+    this.incomeRecordIdCounter = 1;
+  }
+
+  // User Methods
+  async getUser(id: number): Promise<User | undefined> {
+    return this.usersStore.get(id);
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    return Array.from(this.usersStore.values()).find(
+      (user) => user.username === username,
+    );
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const id = this.userIdCounter++;
+    const user: User = { ...insertUser, id };
+    this.usersStore.set(id, user);
+    return user;
+  }
+  
+  async getAllUsers(): Promise<User[]> {
+    return Array.from(this.usersStore.values());
+  }
+
+  // Expense Category Methods
+  async getExpenseCategory(id: number): Promise<ExpenseCategory | undefined> {
+    return this.expenseCategoriesStore.get(id);
+  }
+  
+  async getAllExpenseCategories(): Promise<ExpenseCategory[]> {
+    return Array.from(this.expenseCategoriesStore.values());
+  }
+  
+  async createExpenseCategory(insertCategory: InsertExpenseCategory): Promise<ExpenseCategory> {
+    const id = this.expenseCategoryIdCounter++;
+    const category: ExpenseCategory = { ...insertCategory, id };
+    this.expenseCategoriesStore.set(id, category);
+    return category;
+  }
+
+  // Expense Methods
+  async getExpense(id: number): Promise<Expense | undefined> {
+    return this.expensesStore.get(id);
+  }
+  
+  async getAllExpenses(): Promise<Expense[]> {
+    return Array.from(this.expensesStore.values());
+  }
+  
+  async createExpense(insertExpense: InsertExpense): Promise<Expense> {
+    const id = this.expenseIdCounter++;
+    const expense: Expense = { ...insertExpense, id };
+    this.expensesStore.set(id, expense);
+    return expense;
+  }
+  
+  async updateExpense(id: number, updateData: InsertExpense): Promise<Expense | undefined> {
+    const existingExpense = this.expensesStore.get(id);
+    if (!existingExpense) return undefined;
+    
+    const updatedExpense: Expense = { ...updateData, id };
+    this.expensesStore.set(id, updatedExpense);
+    return updatedExpense;
+  }
+  
+  async deleteExpense(id: number): Promise<boolean> {
+    return this.expensesStore.delete(id);
+  }
+
+  // Employee Methods
+  async getEmployee(id: number): Promise<Employee | undefined> {
+    return this.employeesStore.get(id);
+  }
+  
+  async getAllEmployees(): Promise<Employee[]> {
+    return Array.from(this.employeesStore.values());
+  }
+  
+  async createEmployee(insertEmployee: InsertEmployee): Promise<Employee> {
+    const id = this.employeeIdCounter++;
+    const employee: Employee = { ...insertEmployee, id };
+    this.employeesStore.set(id, employee);
+    return employee;
+  }
+  
+  async updateEmployee(id: number, updateData: InsertEmployee): Promise<Employee | undefined> {
+    const existingEmployee = this.employeesStore.get(id);
+    if (!existingEmployee) return undefined;
+    
+    const updatedEmployee: Employee = { ...updateData, id };
+    this.employeesStore.set(id, updatedEmployee);
+    return updatedEmployee;
+  }
+
+  // Payroll Record Methods
+  async getPayrollRecord(id: number): Promise<PayrollRecord | undefined> {
+    return this.payrollRecordsStore.get(id);
+  }
+  
+  async getAllPayrollRecords(): Promise<PayrollRecord[]> {
+    return Array.from(this.payrollRecordsStore.values());
+  }
+  
+  async createPayrollRecord(insertRecord: InsertPayrollRecord): Promise<PayrollRecord> {
+    const id = this.payrollRecordIdCounter++;
+    const record: PayrollRecord = { ...insertRecord, id };
+    this.payrollRecordsStore.set(id, record);
+    return record;
+  }
+  
+  async updatePayrollRecord(id: number, updateData: InsertPayrollRecord): Promise<PayrollRecord | undefined> {
+    const existingRecord = this.payrollRecordsStore.get(id);
+    if (!existingRecord) return undefined;
+    
+    const updatedRecord: PayrollRecord = { ...updateData, id };
+    this.payrollRecordsStore.set(id, updatedRecord);
+    return updatedRecord;
+  }
+
+  // Income Record Methods
+  async getIncomeRecord(id: number): Promise<IncomeRecord | undefined> {
+    return this.incomeRecordsStore.get(id);
+  }
+  
+  async getAllIncomeRecords(): Promise<IncomeRecord[]> {
+    return Array.from(this.incomeRecordsStore.values());
+  }
+  
+  async createIncomeRecord(insertRecord: InsertIncomeRecord): Promise<IncomeRecord> {
+    const id = this.incomeRecordIdCounter++;
+    const record: IncomeRecord = { ...insertRecord, id };
+    this.incomeRecordsStore.set(id, record);
+    return record;
+  }
+}
+
+export const storage = new MemStorage();

@@ -24,7 +24,7 @@ export default function Reports() {
     {
       title: "Financial Report",
       description: "Comprehensive income and expense summary with balance calculations",
-      icon: <DollarSign className="h-12 w-12 text-secondary" />,
+      icon: <DollarSign className="h-12 w-12 text-green-800" />,
       path: "/reports/financial",
       features: [
         "Income vs Expense breakdown",
@@ -105,7 +105,7 @@ export default function Reports() {
         <div className="border rounded-md divide-y">
           <div className="p-4 flex items-center justify-between">
             <div className="flex items-center">
-              <BarChart className="h-5 w-5 text-secondary mr-3" />
+              <BarChart className="h-5 w-5 text-primary mr-3" />
               <div>
                 <h4 className="font-medium">Monthly Financial Summary</h4>
                 <p className="text-sm text-gray-500">Generated on May 1, 2023</p>

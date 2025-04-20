@@ -2,5 +2,50 @@
   "variant": "professional",
   "primary": "hsl(222.2 47.4% 23.3%)",
   "appearance": "light",
-  "radius": 0.5
+  "radius": 0.5,
+  "colors": {
+    "background": "hsl(0 0% 100%)",
+    "foreground": "hsl(222.2 47.4% 11.2%)",
+    "card": {
+      "DEFAULT": "hsl(0 0% 100%)",
+      "foreground": "hsl(222.2 47.4% 11.2%)"
+    },
+    "popover": {
+      "DEFAULT": "hsl(0 0% 100%)",
+      "foreground": "hsl(222.2 47.4% 11.2%)"
+    },
+    "primary": {
+      "DEFAULT": "hsl(222.2 47.4% 23.3%)",
+      "foreground": "hsl(210 40% 98%)"
+    },
+    "secondary": {
+      "DEFAULT": "hsl(210 40% 96.1%)",
+      "foreground": "hsl(222.2 47.4% 11.2%)"
+    },
+    "muted": {
+      "DEFAULT": "hsl(210 40% 96.1%)",
+      "foreground": "hsl(215.4 16.3% 46.9%)"
+    },
+    "accent": {
+      "DEFAULT": "hsl(210 40% 96.1%)",
+      "foreground": "hsl(222.2 47.4% 11.2%)"
+    },
+    "destructive": {
+      "DEFAULT": "hsl(0 84.2% 60.2%)",
+      "foreground": "hsl(210 40% 98%)"
+    },
+    "border": "hsl(214.3 31.8% 91.4%)",
+    "input": "hsl(214.3 31.8% 91.4%)",
+    "ring": "hsl(222.2 47.4% 23.3%)",
+    "sidebar": {
+      "background": "hsl(222.2 47.4% 11.2%)",
+      "foreground": "hsl(210 40% 98%)",
+      "primary": "hsl(210 40% 98%)",
+      "primary-foreground": "hsl(222.2 47.4% 11.2%)",
+      "accent": "hsl(217.2 32.6% 17.5%)",
+      "accent-foreground": "hsl(210 40% 98%)",
+      "border": "hsl(217.2 32.6% 17.5%)",
+      "ring": "hsl(224.3 76.3% 48%)"
+    }
+  }
 }

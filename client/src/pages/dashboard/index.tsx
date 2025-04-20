@@ -145,8 +145,8 @@ export default function Dashboard() {
           <MetricsCard
             title="Total Income"
             value={formatCurrency(data?.metrics.totalIncome || 0)}
-            icon={<DollarSign className="h-6 w-6 text-accent" />}
-            iconBgColor="bg-green-100"
+            icon={<DollarSign className="h-6 w-6 text-green-800" />}
+            iconBgColor="bg-green-200"
             change={{
               value: "12.3%",
               type: "increase",
@@ -177,7 +177,7 @@ export default function Dashboard() {
         <MetricsCard
           title="Current Balance"
           value={formatCurrency(data?.metrics.currentBalance || 0)}
-          icon={<BarChart3 className="h-6 w-6 text-secondary" />}
+          icon={<BarChart3 className="h-6 w-6 text-blue-800" />}
           iconBgColor="bg-blue-100"
           change={{
             value: "22.5%",

@@ -318,7 +318,7 @@ export default function PayrollReport() {
             <CardTitle className="text-sm font-medium text-gray-500">Total Net Pay</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold font-mono text-accent">
+            <div className="text-2xl font-bold font-mono text-green-800">
               {formatCurrency(payrollData?.totalNetAmount || 0)}
             </div>
             <p className="text-sm text-gray-500 mt-1">
@@ -376,16 +376,12 @@ export default function PayrollReport() {
                           <TableCell className="text-right font-mono text-red-500">
                             {formatCurrency(record.deductions)}
                           </TableCell>
-                          <TableCell className="text-right font-mono text-accent">
+                          <TableCell className="text-right font-mono text-green-800">
                             {formatCurrency(record.netAmount)}
                           </TableCell>
                           <TableCell>
                             <Badge
-                              variant={record.status === 'completed' ? "default" : "secondary"}
-                              className={cn(
-                                record.status === 'completed' ? "bg-accent hover:bg-accent/80" : "",
-                                record.status === 'pending' ? "bg-warning hover:bg-warning/80" : ""
-                              )}
+                              variant={record.status === 'completed' ? "success" : "secondary"}
                             >
                               {record.status === 'completed' ? "Completed" : "Pending"}
                             </Badge>

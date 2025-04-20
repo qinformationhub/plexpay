@@ -23,7 +23,7 @@ export default function TransactionsTable({ transactions, onViewAll }: Transacti
     if (transaction.type === 'income') {
       return (
         <div className="flex-shrink-0 h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
-          <DollarSign className="h-4 w-4 text-accent" />
+          <DollarSign className="h-4 w-4 text-green-800" />
         </div>
       );
     }
@@ -129,7 +129,7 @@ export default function TransactionsTable({ transactions, onViewAll }: Transacti
                   </td>
                   <td className={cn(
                     "px-4 py-3 whitespace-nowrap text-right text-sm font-medium font-mono",
-                    transaction.amount >= 0 ? "text-accent" : "text-red-500"
+                    transaction.amount >= 0 ? "text-green-800" : "text-red-500"
                   )}>
                     {transaction.amount >= 0 ? '+' : ''}{formatCurrency(transaction.amount)}
                   </td>

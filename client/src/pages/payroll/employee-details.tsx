@@ -190,7 +190,6 @@ export default function EmployeeDetails({ params }: { params: { id: string } }) 
               <CardTitle>Profile</CardTitle>
               <Badge
                 variant={employee.isActive ? "default" : "secondary"}
-                className={employee.isActive ? "bg-accent hover:bg-accent/80" : ""}
               >
                 {employee.isActive ? "Active" : "Inactive"}
               </Badge>
@@ -293,18 +292,14 @@ export default function EmployeeDetails({ params }: { params: { id: string } }) 
                         <TableCell className="text-right font-mono text-red-500">
                           {formatCurrency(record.deductions)}
                         </TableCell>
-                        <TableCell className="text-right font-mono text-accent">
+                        <TableCell className="text-right font-mono text-green-500">
                           {formatCurrency(record.netAmount)}
                         </TableCell>
                         <TableCell>
                           <Badge
-                            variant={record.status === 'completed' ? "default" : "secondary"}
-                            className={cn(
-                              record.status === 'completed' ? "bg-accent hover:bg-accent/80" : "",
-                              record.status === 'pending' ? "bg-warning hover:bg-warning/80" : ""
-                            )}
+                            variant={record.status === 'completed' ? "success" : record.status === 'pending' ? "secondary" : record.status === 'failed' ? "destructive" : "secondary"}
                           >
-                            {record.status === 'completed' ? "Completed" : "Pending"}
+                            {record.status === 'completed' ? "Completed" : record.status === 'pending' ? "Pending" : record.status === 'failed' ? "Failed" : "Unknown"}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right">

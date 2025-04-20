@@ -180,7 +180,7 @@ export default function Payroll() {
                           <TableCell>
                             <Badge
                               variant={employee.isActive ? "default" : "secondary"}
-                              className={employee.isActive ? "bg-accent hover:bg-accent/80" : ""}
+                              className={employee.isActive ? "bg-green-200 text-green-800 hover:bg-green-200/80" : ""}
                             >
                               {employee.isActive ? "Active" : "Inactive"}
                             </Badge>
@@ -273,16 +273,12 @@ export default function Payroll() {
                           <TableCell className="text-right font-mono text-red-500">
                             {formatCurrency(record.deductions)}
                           </TableCell>
-                          <TableCell className="text-right font-mono text-accent">
+                          <TableCell className="text-right font-mono text-green-800">
                             {formatCurrency(record.netAmount)}
                           </TableCell>
                           <TableCell>
                             <Badge
-                              variant={record.status === 'completed' ? "default" : "secondary"}
-                              className={cn(
-                                record.status === 'completed' ? "bg-accent hover:bg-accent/80" : "",
-                                record.status === 'pending' ? "bg-warning hover:bg-warning/80" : ""
-                              )}
+                              variant={record.status === 'completed' ? "success" : "secondary"}
                             >
                               {record.status === 'completed' ? "Completed" : "Pending"}
                             </Badge>

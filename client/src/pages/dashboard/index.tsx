@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { DollarSign, CreditCard, BarChart3, Users } from "lucide-react";
+import { DollarSign, CreditCard, BarChart3, Users, Filter } from "lucide-react";
 import MetricsCard from "@/components/dashboard/MetricsCard";
 import RevenueChart from "@/components/dashboard/RevenueChart";
 import ExpensesChart from "@/components/dashboard/ExpensesChart";
@@ -16,6 +16,12 @@ type DashboardData = {
     totalExpenses: number;
     currentBalance: number;
     pendingPayroll: number;
+    monthlyIncome: number;
+    yearlyIncome: number;
+    monthlyExpenses: number;
+    yearlyExpenses: number;
+    periodIncome: number;
+    periodExpenses: number;
   };
   recentTransactions: Array<{
     id: string;
@@ -29,13 +35,53 @@ type DashboardData = {
   monthlyData: Array<{ income: number; expenses: number }>;
 };
 
+const periodOptions = [
+  { label: "All Time", value: "all" },
+  { label: "Custom Month/Year", value: "custom" },
+];
+
+const months = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"
+];
+
+const currentDate = new Date();
+const currentMonth = currentDate.getUTCMonth();
+const currentYear = currentDate.getUTCFullYear();
+
+const years = Array.from({ length: 10 }, (_, i) => currentYear - i); // last 10 years
+
 export default function Dashboard() {
   const [_, navigate] = useLocation();
   
-  const { data, isLoading, error } = useQuery<DashboardData>({
-    queryKey: ['/api/dashboard'],
-    staleTime: 0, // Always refetch when invalidated
+  const [period, setPeriod] = useState("custom");
+  const [selectedMonth, setSelectedMonth] = useState(currentMonth);
+  const [selectedYear, setSelectedYear] = useState(currentYear);
+  const queryClient = useQueryClient();
+
+  // Build query key and params
+  const dashboardQueryKey = period === "custom"
+    ? ["/api/dashboard", { month: selectedMonth, year: selectedYear }]
+    : ["/api/dashboard"];
+
+  const { data, isLoading, error, refetch } = useQuery<DashboardData>({
+    queryKey: dashboardQueryKey,
+    queryFn: async ({ queryKey }) => {
+      const [, params] = queryKey as [string, any];
+      let url = "/api/dashboard";
+      if (params) {
+        url += `?month=${params.month}&year=${params.year}`;
+      }
+      const res = await fetch(url);
+      return res.json();
+    },
+    staleTime: 0,
+    refetchInterval: 5000,
+    refetchOnWindowFocus: true,
   });
+  
+  // Debug: Log dashboard metrics
+  console.log('Dashboard metrics:', data?.metrics);
   
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('ur-PK', {
@@ -95,6 +141,16 @@ export default function Dashboard() {
     date: typeof t.date === 'string' ? new Date(t.date) : t.date,
   }));
   
+  const getIncomeValue = () => {
+    if (period === "custom") return data?.metrics.periodIncome || 0;
+    return data?.metrics.totalIncome || 0;
+  };
+
+  const getExpenseValue = () => {
+    if (period === "custom") return data?.metrics.periodExpenses || 0;
+    return data?.metrics.totalExpenses || 0;
+  };
+  
   if (isLoading) {
     return (
       <div className="animate-pulse">
@@ -148,19 +204,56 @@ export default function Dashboard() {
   
   return (
     <>
-      {/* Page Title & Date Filter */}
-      <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-primary font-inter">Financial Overview</h2>
-          <p className="text-gray-500 mt-1">Track your organization's financial health at a glance</p>
-        </div>
-        <div className="mt-4 sm:mt-0">
-          <div className="inline-flex rounded-md shadow-sm">
-            <Button variant="outline" className="rounded-r-none">
-              Month
-            </Button>
-            <Button className="rounded-l-none bg-secondary hover:bg-secondary/90">
-              Quarter
+      {/* Page Title */}
+      <div className="mb-2">
+        <h2 className="text-2xl font-bold text-primary font-inter">Financial Overview</h2>
+        <p className="text-gray-500 mt-1">Track your organization's financial health at a glance</p>
+      </div>
+      {/* Stylish Filter Bar - always below headings */}
+      <div className="w-full flex justify-center mb-8">
+        <div className="w-full max-w-7xl bg-white shadow-lg rounded-xl px-8 py-5 border border-gray-100 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          {/* Left side: Filter controls */}
+          <div className="flex flex-wrap items-center gap-4">
+            <Filter className="h-5 w-5 text-primary mr-2" />
+            <span className="font-semibold text-gray-700">Period:</span>
+            <select
+              value={period}
+              onChange={e => setPeriod(e.target.value)}
+              className="border border-gray-300 rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-primary/30 bg-gray-50 text-gray-700"
+            >
+              {periodOptions.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+            {period === "custom" && (
+              <>
+                <span className="font-semibold text-gray-700">Month:</span>
+                <select
+                  value={selectedMonth}
+                  onChange={e => setSelectedMonth(Number(e.target.value))}
+                  className="border border-gray-300 rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-primary/30 bg-gray-50 text-gray-700"
+                >
+                  {months.map((m, idx) => (
+                    <option key={idx} value={idx}>{m}</option>
+                  ))}
+                </select>
+                <span className="font-semibold text-gray-700">Year:</span>
+                <select
+                  value={selectedYear}
+                  onChange={e => setSelectedYear(Number(e.target.value))}
+                  className="border border-gray-300 rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-primary/30 bg-gray-50 text-gray-700"
+                >
+                  {years.map(y => (
+                    <option key={y} value={y}>{y}</option>
+                  ))}
+                </select>
+              </>
+            )}
+          </div>
+          {/* Right side: Apply button */}
+          <div className="flex justify-end w-full md:w-auto">
+            <Button className="text-white bg-primary hover:bg-primary/90 px-5 py-1.5 rounded-lg shadow-sm transition-all duration-150" onClick={() => refetch()}>
+              Apply
             </Button>
           </div>
         </div>
@@ -168,10 +261,12 @@ export default function Dashboard() {
       
       {/* Key Metrics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-        <div className="relative">
+        <div>
           <MetricsCard
-            title="Total Income"
-            value={formatCurrency(data?.metrics.totalIncome || 0)}
+            title={period === "custom"
+              ? `Total Income (${months[selectedMonth]} ${selectedYear})`
+              : "Total Income (All Time)"}
+            value={formatCurrency(getIncomeValue())}
             icon={
               <svg className="h-6 w-6 text-green-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <text x="2" y="20" fontSize="20" fontWeight="bold">₨</text>
@@ -179,32 +274,27 @@ export default function Dashboard() {
             }
             iconBgColor="bg-green-200"
             change={{
-              value: "12.3%",
-              type: "increase",
-              text: "+12.3% from last period"
+              value: "",
+              type: "neutral",
+              text: period === "custom" ? `${months[selectedMonth]} ${selectedYear}` : "All Time"
             }}
           />
-          <Button 
-            className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 bg-accent hover:bg-accent/90"
-            size="sm"
-            onClick={() => navigate("/income/add")}
-          >
-            Add Income
-          </Button>
         </div>
-        
-        <MetricsCard
-          title="Total Expenses"
-          value={formatCurrency(data?.metrics.totalExpenses || 0)}
-          icon={<CreditCard className="h-6 w-6 text-red-500" />}
-          iconBgColor="bg-red-100"
-          change={{
-            value: "5.8%",
-            type: "decrease",
-            text: "+5.8% from last period"
-          }}
-        />
-        
+        <div>
+          <MetricsCard
+            title={period === "custom"
+              ? `Total Expenses (${months[selectedMonth]} ${selectedYear})`
+              : "Total Expenses (All Time)"}
+            value={formatCurrency(getExpenseValue())}
+            icon={<CreditCard className="h-6 w-6 text-red-500" />}
+            iconBgColor="bg-red-100"
+            change={{
+              value: "",
+              type: "neutral",
+              text: period === "custom" ? `${months[selectedMonth]} ${selectedYear}` : "All Time"
+            }}
+          />
+        </div>
         <MetricsCard
           title="Current Balance"
           value={formatCurrency(data?.metrics.currentBalance || 0)}
@@ -216,7 +306,6 @@ export default function Dashboard() {
             text: "+22.5% from last period"
           }}
         />
-        
         <MetricsCard
           title="Pending Payroll"
           value={formatCurrency(data?.metrics.pendingPayroll || 0)}

@@ -131,19 +131,24 @@ export default function Sidebar({ collapsed }: SidebarProps) {
               </li>
             )}
             {user?.role === 'admin' && (
-                <li>
-                  <Link
-                    href="/users"
-                    className={cn(
-                      "flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-accent",
-                      location === "/users" ? "bg-secondary text-secondary-foreground" : "transparent"
-                    )}
-                  >
-                    <Users className="h-4 w-4" />
-                    Users
-                  </Link>
-                </li>
-              )}
+              <li>
+                <Link
+                  href="/users"
+                  className={cn(
+                    "flex items-center px-4 py-3 rounded-md group",
+                    isActive("/users")
+                      ? "bg-primary-700 text-white"
+                      : "text-gray-300 hover:bg-gray-700"
+                  )}
+                >
+                  <Users className={cn(
+                    "h-5 w-5",
+                    isActive("/users") ? "text-secondary" : ""
+                  )} />
+                  {!collapsed && <span className="ml-3">Users</span>}
+                </Link>
+              </li>
+            )}
           </ul>
         </nav>
 

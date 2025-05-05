@@ -271,8 +271,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Income routes
   app.get('/api/income-records', async (req: Request, res: Response) => {
     try {
-      const records = await storage.getAllIncomeRecords();
-      res.json(records);
+      const page = req.query.page ? Number(req.query.page) : 1;
+      const limit = req.query.limit ? Number(req.query.limit) : 10;
+      const { data, total } = await storage.getPaginatedIncomeRecords(page, limit);
+      res.json({ data, total });
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch income records" });
     }
@@ -298,19 +300,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const expenses = await storage.getAllExpenses();
       const payrollRecords = await storage.getAllPayrollRecords();
       
-      // Calculate total income
-      const totalIncome = incomeRecords.reduce((sum, record) => {
-        return sum + Number(record.amount);
-      }, 0);
-      
-      // Calculate total expenses
-      const totalExpenses = expenses.reduce((sum, expense) => {
-        return sum + Number(expense.amount);
-      }, 0);
-      
-      // Calculate current balance
+      // Parse month/year from query params (month: 0-11)
+      const monthParam = req.query.month !== undefined ? Number(req.query.month) : undefined;
+      const yearParam = req.query.year !== undefined ? Number(req.query.year) : undefined;
+      const now = new Date();
+      const selectedMonth = monthParam !== undefined ? monthParam : now.getUTCMonth();
+      const selectedYear = yearParam !== undefined ? yearParam : now.getUTCFullYear();
+
+      // All-time totals
+      const totalIncome = incomeRecords.reduce((sum, record) => sum + Number(record.amount), 0);
+      const totalExpenses = expenses.reduce((sum, expense) => sum + Number(expense.amount), 0);
       const currentBalance = totalIncome - totalExpenses;
-      
+
+      // Period-based totals (selected month/year)
+      const periodIncome = incomeRecords
+        .filter(record => {
+          const date = new Date(record.date);
+          return date.getUTCMonth() === selectedMonth && date.getUTCFullYear() === selectedYear;
+        })
+        .reduce((sum, record) => sum + Number(record.amount), 0);
+      const periodExpenses = expenses
+        .filter(expense => {
+          const date = new Date(expense.date);
+          return date.getUTCMonth() === selectedMonth && date.getUTCFullYear() === selectedYear;
+        })
+        .reduce((sum, expense) => sum + Number(expense.amount), 0);
+
+      // Yearly totals (for selected year)
+      const yearlyIncome = incomeRecords
+        .filter(record => {
+          const date = new Date(record.date);
+          return date.getUTCFullYear() === selectedYear;
+        })
+        .reduce((sum, record) => sum + Number(record.amount), 0);
+      const yearlyExpenses = expenses
+        .filter(expense => {
+          const date = new Date(expense.date);
+          return date.getUTCFullYear() === selectedYear;
+        })
+        .reduce((sum, expense) => sum + Number(expense.amount), 0);
+
       // Calculate pending payroll (sum of payroll records with status "pending")
       const pendingPayroll = payrollRecords
         .filter(record => record.status === "pending")
@@ -353,21 +382,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Monthly trends
-      const currentYear = new Date().getFullYear();
       const monthlyData = Array(12).fill(0).map(() => ({ income: 0, expenses: 0 }));
       
       for (const income of incomeRecords) {
         const date = new Date(income.date);
-        if (date.getFullYear() === currentYear) {
-          const month = date.getMonth();
+        if (date.getUTCFullYear() === selectedYear) {
+          const month = date.getUTCMonth();
           monthlyData[month].income += Number(income.amount);
         }
       }
       
       for (const expense of expenses) {
         const date = new Date(expense.date);
-        if (date.getFullYear() === currentYear) {
-          const month = date.getMonth();
+        if (date.getUTCFullYear() === selectedYear) {
+          const month = date.getUTCMonth();
           monthlyData[month].expenses += Number(expense.amount);
         }
       }
@@ -377,7 +405,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           totalIncome,
           totalExpenses,
           currentBalance,
-          pendingPayroll
+          pendingPayroll,
+          periodIncome,
+          periodExpenses,
+          yearlyIncome,
+          yearlyExpenses,
+          selectedMonth,
+          selectedYear
         },
         recentTransactions,
         expensesByCategory,

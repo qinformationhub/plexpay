@@ -12,15 +12,15 @@ interface MetricsCardProps {
     type: "increase" | "decrease" | "neutral";
     text: string;
   };
+  addButton?: ReactNode;
 }
 
-export default function MetricsCard({ title, value, icon, iconBgColor, change }: MetricsCardProps) {
+export default function MetricsCard({ title, value, icon, iconBgColor, change, addButton }: MetricsCardProps) {
   return (
     <div className={cn(
-  "bg-white rounded-lg shadow-sm p-6",
-  title === "Total Income" && "border-2 border-accent"
-)}>
-      <div className="flex justify-between items-start">
+      "bg-white rounded-lg shadow-sm p-6 min-h-[220px] w-full relative flex flex-col justify-between items-stretch border-2 border-accent/40 transition-all duration-300 hover:border-accent hover:bg-accent/10 hover:shadow-xl hover:scale-105"
+    )}>
+      <div className="flex justify-between items-start h-full">
         <div>
           <p className="text-gray-500 text-sm">{title}</p>
           <h3 className="text-2xl font-bold text-primary mt-1 font-mono">{value}</h3>
@@ -44,6 +44,11 @@ export default function MetricsCard({ title, value, icon, iconBgColor, change }:
           {icon}
         </div>
       </div>
+      {addButton && (
+        <div className="absolute left-1/2 bottom-0 transform -translate-x-1/2 translate-y-1/2 z-10 mb-1">
+          {addButton}
+        </div>
+      )}
     </div>
   );
 }

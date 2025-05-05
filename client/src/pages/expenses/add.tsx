@@ -105,7 +105,7 @@ export default function AddExpense() {
 
   function onSubmit(values: FormValues) {
     const formattedValues = {
-      description: values.description,
+      ...values,
       amount: values.amount.toString(),
       date: values.date instanceof Date ? values.date.toISOString() : values.date,
       categoryId: Number(values.categoryId),

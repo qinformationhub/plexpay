@@ -119,7 +119,14 @@ export default function EditExpense({ params }: { params: { id: string } }) {
   });
 
   function onSubmit(values: FormValues) {
-    updateExpenseMutation.mutate(values);
+    const formattedValues = {
+      ...values,
+      amount: values.amount.toString(),
+      date: values.date instanceof Date ? values.date.toISOString() : values.date,
+      categoryId: Number(values.categoryId),
+      userId: expense.userId,
+    };
+    updateExpenseMutation.mutate(formattedValues);
   }
 
   if (expenseLoading || categoriesLoading) {

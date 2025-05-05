@@ -271,8 +271,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Income routes
   app.get('/api/income-records', async (req: Request, res: Response) => {
     try {
-      const records = await storage.getAllIncomeRecords();
-      res.json(records);
+      const page = req.query.page ? Number(req.query.page) : 1;
+      const limit = req.query.limit ? Number(req.query.limit) : 10;
+      const { data, total } = await storage.getPaginatedIncomeRecords(page, limit);
+      res.json({ data, total });
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch income records" });
     }

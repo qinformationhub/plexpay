@@ -7,7 +7,7 @@ import {
   incomeRecords, type IncomeRecord, type InsertIncomeRecord
 } from "@shared/schema";
 import { db } from './db';
-import { eq, asc, desc } from 'drizzle-orm';
+import { eq, asc, desc, sql } from 'drizzle-orm';
 
 export interface IStorage {
   // User methods
@@ -44,6 +44,7 @@ export interface IStorage {
   getIncomeRecord(id: number): Promise<IncomeRecord | undefined>;
   getAllIncomeRecords(): Promise<IncomeRecord[]>;
   createIncomeRecord(record: InsertIncomeRecord): Promise<IncomeRecord>;
+  getPaginatedIncomeRecords(page: number, limit: number): Promise<{ data: IncomeRecord[]; total: number }>;
 }
 
 export class MemStorage implements IStorage {
@@ -90,7 +91,7 @@ export class MemStorage implements IStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.userIdCounter++;
-    const user: User = { ...insertUser, id };
+    const user: User = { ...insertUser, id, role: insertUser.role ?? "staff" };
     this.usersStore.set(id, user);
     return user;
   }
@@ -110,7 +111,7 @@ export class MemStorage implements IStorage {
   
   async createExpenseCategory(insertCategory: InsertExpenseCategory): Promise<ExpenseCategory> {
     const id = this.expenseCategoryIdCounter++;
-    const category: ExpenseCategory = { ...insertCategory, id };
+    const category: ExpenseCategory = { ...insertCategory, id, description: insertCategory.description ?? null };
     this.expenseCategoriesStore.set(id, category);
     return category;
   }
@@ -126,7 +127,7 @@ export class MemStorage implements IStorage {
   
   async createExpense(insertExpense: InsertExpense): Promise<Expense> {
     const id = this.expenseIdCounter++;
-    const expense: Expense = { ...insertExpense, id };
+    const expense: Expense = { ...insertExpense, id, notes: insertExpense.notes ?? null, receipt: insertExpense.receipt ?? null };
     this.expensesStore.set(id, expense);
     return expense;
   }
@@ -135,7 +136,7 @@ export class MemStorage implements IStorage {
     const existingExpense = this.expensesStore.get(id);
     if (!existingExpense) return undefined;
     
-    const updatedExpense: Expense = { ...updateData, id };
+    const updatedExpense: Expense = { ...updateData, id, notes: updateData.notes ?? null, receipt: updateData.receipt ?? null };
     this.expensesStore.set(id, updatedExpense);
     return updatedExpense;
   }
@@ -155,7 +156,7 @@ export class MemStorage implements IStorage {
   
   async createEmployee(insertEmployee: InsertEmployee): Promise<Employee> {
     const id = this.employeeIdCounter++;
-    const employee: Employee = { ...insertEmployee, id };
+    const employee: Employee = { ...insertEmployee, id, phoneNumber: insertEmployee.phoneNumber ?? null, address: insertEmployee.address ?? null, isActive: insertEmployee.isActive ?? null };
     this.employeesStore.set(id, employee);
     return employee;
   }
@@ -164,7 +165,7 @@ export class MemStorage implements IStorage {
     const existingEmployee = this.employeesStore.get(id);
     if (!existingEmployee) return undefined;
     
-    const updatedEmployee: Employee = { ...updateData, id };
+    const updatedEmployee: Employee = { ...updateData, id, phoneNumber: updateData.phoneNumber ?? null, address: updateData.address ?? null, isActive: updateData.isActive ?? null };
     this.employeesStore.set(id, updatedEmployee);
     return updatedEmployee;
   }
@@ -180,7 +181,7 @@ export class MemStorage implements IStorage {
   
   async createPayrollRecord(insertRecord: InsertPayrollRecord): Promise<PayrollRecord> {
     const id = this.payrollRecordIdCounter++;
-    const record: PayrollRecord = { ...insertRecord, id };
+    const record: PayrollRecord = { ...insertRecord, id, status: insertRecord.status ?? "completed", notes: insertRecord.notes ?? null };
     this.payrollRecordsStore.set(id, record);
     return record;
   }
@@ -189,7 +190,7 @@ export class MemStorage implements IStorage {
     const existingRecord = this.payrollRecordsStore.get(id);
     if (!existingRecord) return undefined;
     
-    const updatedRecord: PayrollRecord = { ...updateData, id };
+    const updatedRecord: PayrollRecord = { ...updateData, id, status: updateData.status ?? "completed", notes: updateData.notes ?? null };
     this.payrollRecordsStore.set(id, updatedRecord);
     return updatedRecord;
   }
@@ -203,9 +204,19 @@ export class MemStorage implements IStorage {
     return Array.from(this.incomeRecordsStore.values());
   }
   
+  async getPaginatedIncomeRecords(page: number, limit: number): Promise<{ data: IncomeRecord[]; total: number }> {
+    const [{ count }] = await db.select({ count: sql`count(*)` }).from(incomeRecords);
+    const total = Number(count);
+    const data = await db.select().from(incomeRecords)
+      .orderBy(desc(incomeRecords.date))
+      .limit(limit)
+      .offset((page - 1) * limit);
+    return { data, total };
+  }
+  
   async createIncomeRecord(insertRecord: InsertIncomeRecord): Promise<IncomeRecord> {
     const id = this.incomeRecordIdCounter++;
-    const record: IncomeRecord = { ...insertRecord, id };
+    const record: IncomeRecord = { ...insertRecord, id, description: insertRecord.description ?? null };
     this.incomeRecordsStore.set(id, record);
     return record;
   }
@@ -332,6 +343,16 @@ export class DatabaseStorage implements IStorage {
 
   async getAllIncomeRecords(): Promise<IncomeRecord[]> {
     return await db.select().from(incomeRecords).orderBy(desc(incomeRecords.date));
+  }
+
+  async getPaginatedIncomeRecords(page: number, limit: number): Promise<{ data: IncomeRecord[]; total: number }> {
+    const [{ count }] = await db.select({ count: sql`count(*)` }).from(incomeRecords);
+    const total = Number(count);
+    const data = await db.select().from(incomeRecords)
+      .orderBy(desc(incomeRecords.date))
+      .limit(limit)
+      .offset((page - 1) * limit);
+    return { data, total };
   }
 
   async createIncomeRecord(insertRecord: InsertIncomeRecord): Promise<IncomeRecord> {

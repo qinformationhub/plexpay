@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { DollarSign, CreditCard, BarChart3, Users, Filter } from "lucide-react";
+import { DollarSign, CreditCard, BarChart3, Users, Filter, Pencil, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import MetricsCard from "@/components/dashboard/MetricsCard";
 import RevenueChart from "@/components/dashboard/RevenueChart";
 import ExpensesChart from "@/components/dashboard/ExpensesChart";
 import TransactionsTable from "@/components/dashboard/TransactionsTable";
 import NotificationsPanel from "@/components/dashboard/NotificationsPanel";
 import { Button } from "@/components/ui/button";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 
 // Add type for dashboard API response
 type DashboardData = {
@@ -58,6 +59,10 @@ export default function Dashboard() {
   const [selectedMonth, setSelectedMonth] = useState(currentMonth);
   const [selectedYear, setSelectedYear] = useState(currentYear);
   const queryClient = useQueryClient();
+  const [incomePage, setIncomePage] = useState(1);
+  const [incomeLimit] = useState(5);
+  const [incomeData, setIncomeData] = useState<any[]>([]);
+  const [incomeTotal, setIncomeTotal] = useState(0);
 
   // Build query key and params
   const dashboardQueryKey = period === "custom"
@@ -79,9 +84,6 @@ export default function Dashboard() {
     refetchInterval: 5000,
     refetchOnWindowFocus: true,
   });
-  
-  // Debug: Log dashboard metrics
-  console.log('Dashboard metrics:', data?.metrics);
   
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('ur-PK', {
@@ -150,6 +152,37 @@ export default function Dashboard() {
     if (period === "custom") return data?.metrics.periodExpenses || 0;
     return data?.metrics.totalExpenses || 0;
   };
+  
+  // Delete income mutation
+  const deleteIncomeMutation = useMutation({
+    mutationFn: async (id: number) => {
+      await apiRequest("DELETE", `/api/income-records/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/income-records"] });
+    },
+  });
+  
+  useEffect(() => {
+    fetch(`/api/income-records?page=${incomePage}&limit=${incomeLimit}`)
+      .then(res => res.json())
+      .then(res => {
+        if (Array.isArray(res)) {
+          setIncomeData(res);
+          setIncomeTotal(res.length);
+        } else {
+          setIncomeData(Array.isArray(res.data) ? res.data : []);
+          setIncomeTotal(res.total || 0);
+        }
+      })
+      .catch(() => {
+        setIncomeData([]);
+        setIncomeTotal(0);
+      });
+  }, [incomePage, incomeLimit, deleteIncomeMutation.isSuccess]);
+
+  const totalPages = Math.ceil(incomeTotal / incomeLimit);
   
   if (isLoading) {
     return (
@@ -278,6 +311,17 @@ export default function Dashboard() {
               type: "neutral",
               text: period === "custom" ? `${months[selectedMonth]} ${selectedYear}` : "All Time"
             }}
+            addButton={
+              <Button
+                className="bg-gradient-to-r from-green-400 to-blue-500 text-white font-semibold px-6 py-2 rounded-full shadow-lg border-0 transition-all duration-300 hover:from-green-500 hover:to-blue-600 hover:scale-105 hover:shadow-2xl flex items-center"
+                onClick={() => navigate('/income/add')}
+              >
+                <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <text x="2" y="20" fontSize="20" fontWeight="bold">₨</text>
+                </svg>
+                Add Income
+              </Button>
+            }
           />
         </div>
         <div>
@@ -300,22 +344,22 @@ export default function Dashboard() {
           value={formatCurrency(data?.metrics.currentBalance || 0)}
           icon={<BarChart3 className="h-6 w-6 text-blue-800" />}
           iconBgColor="bg-blue-100"
-          change={{
-            value: "22.5%",
-            type: "increase",
-            text: "+22.5% from last period"
-          }}
+          // change={{
+          //   value: "22.5%",
+          //   type: "neutral",
+          //   text: "+22.5% from last period"
+          // }}
         />
         <MetricsCard
           title="Pending Payroll"
           value={formatCurrency(data?.metrics.pendingPayroll || 0)}
           icon={<Users className="h-6 w-6 text-warning" />}
           iconBgColor="bg-orange-100"
-          change={{
-            value: "5",
-            type: "neutral",
-            text: "Due in 5 days"
-          }}
+          // change={{
+          //   value: "5",
+          //   type: "neutral",
+          //   text: "Due in 5 days"
+          // }}
         />
       </div>
       
@@ -345,6 +389,80 @@ export default function Dashboard() {
             onMarkAllRead={() => console.log("Mark all read")}
             onViewAll={() => console.log("View all notifications")}
           />
+        </div>
+      </div>
+      
+      {/* Income Table */}
+      <div className="bg-white rounded-2xl shadow-lg p-6 mb-8 mt-6 border border-gray-100">
+        <h3 className="text-xl font-bold mb-4 text-primary">Income Entries</h3>
+        <div className="overflow-x-auto">
+          <table className="min-w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-50">Source</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-50">Description</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-50">Date</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-50">Amount</th>
+                <th className="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-50">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-100">
+              {(incomeData || []).length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="text-center py-8 text-gray-400">No income entries found.</td>
+                </tr>
+              ) : (
+                (incomeData || []).map((income: any) => (
+                  <tr key={income.id} className="hover:bg-gray-50 transition">
+                    <td className="px-6 py-4 whitespace-nowrap text-gray-900 font-medium">{income.source}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-gray-700">{income.description || "—"}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-gray-500">{typeof income.date === 'string' ? (new Date(income.date)).toLocaleDateString() : income.date.toLocaleDateString()}</td>
+                    <td className="px-6 py-4 whitespace-nowrap font-mono font-bold text-green-600">
+                      +{formatCurrency(income.amount)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                      <button
+                        className="inline-flex items-center px-2 py-1 text-xs text-blue-600 hover:text-blue-900"
+                        onClick={() => navigate(`/income/edit/${income.id}`)}
+                        title="Edit"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </button>
+                      <button
+                        className="inline-flex items-center px-2 py-1 text-xs text-red-600 hover:text-red-900 ml-2"
+                        onClick={() => {
+                          if (window.confirm("Are you sure you want to delete this income entry?")) {
+                            deleteIncomeMutation.mutate(Number(income.id));
+                          }
+                        }}
+                        title="Delete"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+        {/* Pagination Controls */}
+        <div className="flex justify-center items-center gap-2 mt-4">
+          <button
+            className="flex items-center gap-1 px-4 py-2 rounded-lg border border-gray-300 bg-white shadow-sm text-gray-700 hover:bg-primary hover:text-white transition disabled:opacity-50"
+            onClick={() => setIncomePage(p => Math.max(1, p - 1))}
+            disabled={incomePage === 1}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+          <span className="mx-2 text-sm">Page {incomePage} of {totalPages}</span>
+          <button
+            className="flex items-center gap-1 px-4 py-2 rounded-lg border border-gray-300 bg-white shadow-sm text-gray-700 hover:bg-primary hover:text-white transition disabled:opacity-50"
+            onClick={() => setIncomePage(p => Math.min(totalPages, p + 1))}
+            disabled={incomePage === totalPages}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
         </div>
       </div>
     </>

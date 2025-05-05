@@ -5,7 +5,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { expenseFormSchema } from "@shared/schema";
+import { expenseFormSchema, type ExpenseCategory } from "@shared/schema";
 import { z } from "zod";
 import { format } from "date-fns";
 
@@ -52,9 +52,8 @@ export default function AddExpense() {
   const [_, navigate] = useLocation();
   const { toast } = useToast();
   const { user } = useAuth();
-  const [date, setDate] = useState<Date | undefined>(new Date());
 
-  const { data: categories, isLoading: categoriesLoading } = useQuery({
+  const { data: categories = [], isLoading: categoriesLoading } = useQuery<ExpenseCategory[]>({
     queryKey: ['/api/expense-categories'],
   });
 
@@ -72,17 +71,23 @@ export default function AddExpense() {
   });
 
   const createExpenseMutation = useMutation({
-    mutationFn: async (values: FormValues) => {
-      const res = await apiRequest("POST", "/api/expenses", {
-        ...values,
-        date: date || new Date(),
-        userId: user?.id,
-      });
+    mutationFn: async (values: {
+      description: string;
+      amount: string;
+      date: string;
+      categoryId: number;
+      userId: number;
+      notes: string | null;
+      receipt: string | null;
+    }) => {
+      const res = await apiRequest("POST", "/api/expenses", values);
       return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/expenses'] });
       queryClient.invalidateQueries({ queryKey: ['/api/dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/reports/financial'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/reports/expenses'] });
       toast({
         title: "Expense created",
         description: "Your expense has been added successfully.",
@@ -100,8 +105,13 @@ export default function AddExpense() {
 
   function onSubmit(values: FormValues) {
     const formattedValues = {
-      ...values,
-      categoryId: Number(values.categoryId)
+      description: values.description,
+      amount: values.amount.toString(),
+      date: values.date instanceof Date ? values.date.toISOString() : values.date,
+      categoryId: Number(values.categoryId),
+      userId: user?.id || 0,
+      notes: values.notes || null,
+      receipt: values.receipt || null
     };
     createExpenseMutation.mutate(formattedValues);
   }
@@ -184,7 +194,7 @@ export default function AddExpense() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {categories.map((category: any) => (
+                          {categories.map((category) => (
                             <SelectItem
                               key={category.id}
                               value={category.id.toString()}
@@ -212,11 +222,11 @@ export default function AddExpense() {
                               variant={"outline"}
                               className={cn(
                                 "w-full pl-3 text-left font-normal",
-                                !date && "text-muted-foreground"
+                                !field.value && "text-muted-foreground"
                               )}
                             >
-                              {date ? (
-                                format(date, "PPP")
+                              {field.value ? (
+                                format(field.value, "PPP")
                               ) : (
                                 <span>Pick a date</span>
                               )}
@@ -227,8 +237,15 @@ export default function AddExpense() {
                         <PopoverContent className="w-auto p-0" align="start">
                           <Calendar
                             mode="single"
-                            selected={date}
-                            onSelect={setDate}
+                            selected={field.value}
+                            onSelect={(date) => {
+                              field.onChange(date);
+                              // Close the popover after selection
+                              const popoverTrigger = document.querySelector('[data-state="open"]');
+                              if (popoverTrigger) {
+                                (popoverTrigger as HTMLElement).click();
+                              }
+                            }}
                             initialFocus
                           />
                         </PopoverContent>
@@ -249,7 +266,11 @@ export default function AddExpense() {
                       <Textarea
                         placeholder="Additional details about this expense..."
                         className="min-h-[120px]"
-                        {...field}
+                        value={field.value || ""}
+                        onChange={field.onChange}
+                        onBlur={field.onBlur}
+                        name={field.name}
+                        ref={field.ref}
                       />
                     </FormControl>
                     <FormMessage />
@@ -266,7 +287,11 @@ export default function AddExpense() {
                     <FormControl>
                       <Input
                         placeholder="https://example.com/receipt.pdf"
-                        {...field}
+                        value={field.value || ""}
+                        onChange={field.onChange}
+                        onBlur={field.onBlur}
+                        name={field.name}
+                        ref={field.ref}
                       />
                     </FormControl>
                     <FormDescription>

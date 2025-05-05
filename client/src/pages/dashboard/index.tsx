@@ -9,11 +9,32 @@ import TransactionsTable from "@/components/dashboard/TransactionsTable";
 import NotificationsPanel from "@/components/dashboard/NotificationsPanel";
 import { Button } from "@/components/ui/button";
 
+// Add type for dashboard API response
+type DashboardData = {
+  metrics: {
+    totalIncome: number;
+    totalExpenses: number;
+    currentBalance: number;
+    pendingPayroll: number;
+  };
+  recentTransactions: Array<{
+    id: string;
+    type: 'income' | 'expense';
+    description: string;
+    category: string;
+    date: string | Date;
+    amount: number;
+  }>;
+  expensesByCategory: Record<string, number>;
+  monthlyData: Array<{ income: number; expenses: number }>;
+};
+
 export default function Dashboard() {
   const [_, navigate] = useLocation();
   
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error } = useQuery<DashboardData>({
     queryKey: ['/api/dashboard'],
+    staleTime: 0, // Always refetch when invalidated
   });
   
   const formatCurrency = (value: number) => {
@@ -67,6 +88,12 @@ export default function Dashboard() {
       time: "3 days ago"
     }
   ];
+  
+  // Ensure recentTransactions have date as Date objects
+  const transactions = (data?.recentTransactions || []).map((t) => ({
+    ...t,
+    date: typeof t.date === 'string' ? new Date(t.date) : t.date,
+  }));
   
   if (isLoading) {
     return (
@@ -145,7 +172,11 @@ export default function Dashboard() {
           <MetricsCard
             title="Total Income"
             value={formatCurrency(data?.metrics.totalIncome || 0)}
-            icon={<DollarSign className="h-6 w-6 text-green-800" />}
+            icon={
+              <svg className="h-6 w-6 text-green-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <text x="2" y="20" fontSize="20" fontWeight="bold">₨</text>
+              </svg>
+            }
             iconBgColor="bg-green-200"
             change={{
               value: "12.3%",
@@ -214,7 +245,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
           <TransactionsTable 
-            transactions={data?.recentTransactions || []}
+            transactions={transactions}
             onViewAll={() => navigate("/reports/financial")}
           />
         </div>

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
@@ -59,12 +58,14 @@ export default function AddIncome() {
   });
 
   const createIncomeMutation = useMutation({
-    mutationFn: async (values: FormValues) => {
-      const res = await apiRequest("POST", "/api/income-records", {
-        ...values,
-        date: date.toISOString(),
-        userId: user?.id,
-      });
+    mutationFn: async (values: {
+      source: string;
+      amount: string;
+      date: string;
+      description: string;
+      userId: number;
+    }) => {
+      const res = await apiRequest("POST", "/api/income-records", values);
       return res.json();
     },
     onSuccess: () => {
@@ -86,7 +87,14 @@ export default function AddIncome() {
   });
 
   function onSubmit(values: FormValues) {
-    createIncomeMutation.mutate(values);
+    const formattedValues = {
+      ...values,
+      amount: values.amount.toString(),
+      date: values.date instanceof Date ? values.date.toISOString() : values.date,
+      userId: user?.id || 0,
+      description: values.description ?? "",
+    };
+    createIncomeMutation.mutate(formattedValues);
   }
 
   return (
@@ -153,11 +161,11 @@ export default function AddIncome() {
                               variant={"outline"}
                               className={cn(
                                 "w-full pl-3 text-left font-normal",
-                                !date && "text-muted-foreground"
+                                !field.value && "text-muted-foreground"
                               )}
                             >
-                              {date ? (
-                                format(date, "PPP")
+                              {field.value ? (
+                                format(field.value, "PPP")
                               ) : (
                                 <span>Pick a date</span>
                               )}
@@ -168,8 +176,15 @@ export default function AddIncome() {
                         <PopoverContent className="w-auto p-0" align="start">
                           <Calendar
                             mode="single"
-                            selected={date}
-                            onSelect={(date) => date && setDate(date)}
+                            selected={field.value}
+                            onSelect={(date) => {
+                              field.onChange(date);
+                              // Close the popover after selection
+                              const popoverTrigger = document.querySelector('[data-state="open"]');
+                              if (popoverTrigger) {
+                                (popoverTrigger as HTMLElement).click();
+                              }
+                            }}
                             initialFocus
                           />
                         </PopoverContent>
@@ -191,6 +206,7 @@ export default function AddIncome() {
                         placeholder="Additional details about this income..."
                         className="min-h-[120px]"
                         {...field}
+                        value={field.value ?? ""}
                       />
                     </FormControl>
                     <FormMessage />

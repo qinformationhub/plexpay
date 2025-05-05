@@ -52,7 +52,6 @@ export default function EditExpense({ params }: { params: { id: string } }) {
   const [_, navigate] = useLocation();
   const { toast } = useToast();
   const { user } = useAuth();
-  const [date, setDate] = useState<Date | undefined>();
 
   const { data: expense, isLoading: expenseLoading } = useQuery({
     queryKey: [`/api/expenses/${params.id}`],
@@ -78,7 +77,6 @@ export default function EditExpense({ params }: { params: { id: string } }) {
   useEffect(() => {
     if (expense) {
       const expenseDate = new Date(expense.date);
-      setDate(expenseDate);
       
       form.reset({
         description: expense.description,
@@ -96,7 +94,7 @@ export default function EditExpense({ params }: { params: { id: string } }) {
     mutationFn: async (values: FormValues) => {
       const res = await apiRequest("PUT", `/api/expenses/${params.id}`, {
         ...values,
-        date: date,
+        date: form.watch("date"),
         userId: expense.userId,
       });
       return res.json();
@@ -231,11 +229,11 @@ export default function EditExpense({ params }: { params: { id: string } }) {
                               variant={"outline"}
                               className={cn(
                                 "w-full pl-3 text-left font-normal",
-                                !date && "text-muted-foreground"
+                                !form.watch("date") && "text-muted-foreground"
                               )}
                             >
-                              {date ? (
-                                format(date, "PPP")
+                              {form.watch("date") ? (
+                                format(form.watch("date"), "PPP")
                               ) : (
                                 <span>Pick a date</span>
                               )}
@@ -246,8 +244,8 @@ export default function EditExpense({ params }: { params: { id: string } }) {
                         <PopoverContent className="w-auto p-0" align="start">
                           <Calendar
                             mode="single"
-                            selected={date}
-                            onSelect={setDate}
+                            selected={form.watch("date")}
+                            onSelect={(date) => date && form.setValue("date", date)}
                             initialFocus
                           />
                         </PopoverContent>

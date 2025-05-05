@@ -53,6 +53,12 @@ export const insertExpenseSchema = createInsertSchema(expenses).pick({
   userId: true,
   notes: true,
   receipt: true,
+}).extend({
+  amount: z.string(),
+  date: z.preprocess(
+    (arg) => (typeof arg === "string" || arg instanceof Date) ? new Date(arg) : arg,
+    z.date()
+  ),
 });
 
 // Employees
@@ -125,6 +131,12 @@ export const insertIncomeRecordSchema = createInsertSchema(incomeRecords).pick({
   date: true,
   description: true,
   userId: true,
+}).extend({
+  amount: z.string(),
+  date: z.preprocess(
+    (arg) => (typeof arg === "string" || arg instanceof Date) ? new Date(arg) : arg,
+    z.date()
+  ),
 });
 
 // Define relations
@@ -193,25 +205,43 @@ export type InsertIncomeRecord = z.infer<typeof insertIncomeRecordSchema>;
 // Extended schemas with validation
 export const expenseFormSchema = insertExpenseSchema.extend({
   amount: z.string().min(1, "Amount is required").or(z.number().positive("Amount must be positive")),
-  date: z.string().or(z.date()),
+  date: z.preprocess(
+    (arg) => (typeof arg === "string" || arg instanceof Date) ? new Date(arg) : arg,
+    z.date()
+  ),
   categoryId: z.number().or(z.string().min(1, "Category is required")),
 });
 
 export const employeeFormSchema = insertEmployeeSchema.extend({
   salary: z.string().min(1, "Salary is required").or(z.number().positive("Salary must be positive")),
-  dateHired: z.string().or(z.date()),
+  dateHired: z.preprocess(
+    (arg) => (typeof arg === "string" || arg instanceof Date) ? new Date(arg) : arg,
+    z.date()
+  ),
 });
 
 export const payrollFormSchema = insertPayrollRecordSchema.extend({
-  payPeriodStart: z.string().or(z.date()),
-  payPeriodEnd: z.string().or(z.date()),
+  payPeriodStart: z.preprocess(
+    (arg) => (typeof arg === "string" || arg instanceof Date) ? new Date(arg) : arg,
+    z.date()
+  ),
+  payPeriodEnd: z.preprocess(
+    (arg) => (typeof arg === "string" || arg instanceof Date) ? new Date(arg) : arg,
+    z.date()
+  ),
   grossAmount: z.string().min(1, "Gross amount is required").or(z.number().positive("Amount must be positive")),
   deductions: z.string().min(1, "Deductions are required").or(z.number().nonnegative("Deductions must be non-negative")),
   netAmount: z.string().min(1, "Net amount is required").or(z.number().positive("Amount must be positive")),
-  processedOn: z.string().or(z.date()),
+  processedOn: z.preprocess(
+    (arg) => (typeof arg === "string" || arg instanceof Date) ? new Date(arg) : arg,
+    z.date()
+  ),
 });
 
 export const incomeFormSchema = insertIncomeRecordSchema.extend({
   amount: z.string().min(1, "Amount is required").or(z.number().positive("Amount must be positive")),
-  date: z.string().or(z.date()),
+  date: z.preprocess(
+    (arg) => (typeof arg === "string" || arg instanceof Date) ? new Date(arg) : arg,
+    z.date()
+  ),
 });

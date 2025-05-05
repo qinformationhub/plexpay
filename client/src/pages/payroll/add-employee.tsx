@@ -42,7 +42,6 @@ type FormValues = z.infer<typeof employeeFormSchema>;
 export default function AddEmployee() {
   const [_, navigate] = useLocation();
   const { toast } = useToast();
-  const [dateHired, setDateHired] = useState<Date | undefined>(new Date());
 
   const form = useForm<FormValues>({
     resolver: zodResolver(employeeFormSchema),
@@ -63,7 +62,6 @@ export default function AddEmployee() {
     mutationFn: async (values: FormValues) => {
       const res = await apiRequest("POST", "/api/employees", {
         ...values,
-        dateHired: dateHired,
       });
       return res.json();
     },
@@ -211,11 +209,11 @@ export default function AddEmployee() {
                               variant={"outline"}
                               className={cn(
                                 "w-full pl-3 text-left font-normal",
-                                !dateHired && "text-muted-foreground"
+                                !form.watch("dateHired") && "text-muted-foreground"
                               )}
                             >
-                              {dateHired ? (
-                                format(dateHired, "PPP")
+                              {form.watch("dateHired") ? (
+                                format(form.watch("dateHired"), "PPP")
                               ) : (
                                 <span>Pick a date</span>
                               )}
@@ -226,8 +224,8 @@ export default function AddEmployee() {
                         <PopoverContent className="w-auto p-0" align="start">
                           <Calendar
                             mode="single"
-                            selected={dateHired}
-                            onSelect={setDateHired}
+                            selected={form.watch("dateHired")}
+                            onSelect={(date) => date && form.setValue("dateHired", date)}
                             initialFocus
                           />
                         </PopoverContent>

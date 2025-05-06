@@ -352,9 +352,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Parse month/year from query params (month: 0-11)
       const monthParam = req.query.month !== undefined ? Number(req.query.month) : undefined;
       const yearParam = req.query.year !== undefined ? Number(req.query.year) : undefined;
+      const yearOnlyParam = req.query.yearOnly !== undefined ? Number(req.query.yearOnly) : undefined;
       const now = new Date();
       const selectedMonth = monthParam !== undefined ? monthParam : now.getUTCMonth();
       const selectedYear = yearParam !== undefined ? yearParam : now.getUTCFullYear();
+      const yearOnlyFilter = yearOnlyParam !== undefined ? yearOnlyParam : now.getUTCFullYear();
 
       // All-time totals
       const totalIncome = incomeRecords.reduce((sum, record) => sum + Number(record.amount), 0);
@@ -379,13 +381,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const yearlyIncome = incomeRecords
         .filter(record => {
           const date = new Date(record.date);
-          return date.getUTCFullYear() === selectedYear;
+          return date.getUTCFullYear() === yearOnlyFilter;
         })
         .reduce((sum, record) => sum + Number(record.amount), 0);
       const yearlyExpenses = expenses
         .filter(expense => {
           const date = new Date(expense.date);
-          return date.getUTCFullYear() === selectedYear;
+          return date.getUTCFullYear() === yearOnlyFilter;
         })
         .reduce((sum, expense) => sum + Number(expense.amount), 0);
 
@@ -397,23 +399,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }, 0);
       
       // Get recent transactions (combine income and expenses, sorted by date)
-      const recentIncomes = incomeRecords.map(income => ({
-        id: `income-${income.id}`,
-        type: 'income',
-        description: income.source,
-        category: 'Income',
-        date: new Date(income.date),
-        amount: Number(income.amount)
-      }));
+      const recentIncomes = incomeRecords
+        .filter(record => {
+          const date = new Date(record.date);
+          return date.getUTCFullYear() === yearOnlyFilter;
+        })
+        .map(income => ({
+          id: `income-${income.id}`,
+          type: 'income',
+          description: income.source,
+          category: 'Income',
+          date: new Date(income.date),
+          amount: Number(income.amount)
+        }));
       
-      const recentExpenses = expenses.map(expense => ({
-        id: `expense-${expense.id}`,
-        type: 'expense',
-        description: expense.description,
-        category: String(expense.categoryId), // This should be replaced with actual category name when available
-        date: new Date(expense.date),
-        amount: -Number(expense.amount)
-      }));
+      const recentExpenses = expenses
+        .filter(expense => {
+          const date = new Date(expense.date);
+          return date.getUTCFullYear() === yearOnlyFilter;
+        })
+        .map(expense => ({
+          id: `expense-${expense.id}`,
+          type: 'expense',
+          description: expense.description,
+          category: String(expense.categoryId), // This should be replaced with actual category name when available
+          date: new Date(expense.date),
+          amount: -Number(expense.amount)
+        }));
       
       const recentTransactions = [...recentIncomes, ...recentExpenses]
         .sort((a, b) => b.date.getTime() - a.date.getTime())
@@ -423,6 +435,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const expensesByCategory: Record<string, number> = {};
       
       for (const expense of expenses) {
+        const date = new Date(expense.date);
+        if (date.getUTCFullYear() !== yearOnlyFilter) continue;
         const categoryId = String(expense.categoryId);
         if (!expensesByCategory[categoryId]) {
           expensesByCategory[categoryId] = 0;
@@ -435,7 +449,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       for (const income of incomeRecords) {
         const date = new Date(income.date);
-        if (date.getUTCFullYear() === selectedYear) {
+        if (date.getUTCFullYear() === yearOnlyFilter) {
           const month = date.getUTCMonth();
           monthlyData[month].income += Number(income.amount);
         }
@@ -443,7 +457,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       for (const expense of expenses) {
         const date = new Date(expense.date);
-        if (date.getUTCFullYear() === selectedYear) {
+        if (date.getUTCFullYear() === yearOnlyFilter) {
           const month = date.getUTCMonth();
           monthlyData[month].expenses += Number(expense.amount);
         }
@@ -460,7 +474,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           yearlyIncome,
           yearlyExpenses,
           selectedMonth,
-          selectedYear
+          selectedYear,
+          yearOnlyFilter
         },
         recentTransactions,
         expensesByCategory,

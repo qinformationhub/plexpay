@@ -45,6 +45,8 @@ export interface IStorage {
   getAllIncomeRecords(): Promise<IncomeRecord[]>;
   createIncomeRecord(record: InsertIncomeRecord): Promise<IncomeRecord>;
   getPaginatedIncomeRecords(page: number, limit: number): Promise<{ data: IncomeRecord[]; total: number }>;
+  updateIncomeRecord(id: number, updateData: InsertIncomeRecord): Promise<IncomeRecord | undefined>;
+  deleteIncomeRecord(id: number): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
@@ -220,6 +222,19 @@ export class MemStorage implements IStorage {
     this.incomeRecordsStore.set(id, record);
     return record;
   }
+
+  async updateIncomeRecord(id: number, updateData: InsertIncomeRecord): Promise<IncomeRecord | undefined> {
+    const existingRecord = this.incomeRecordsStore.get(id);
+    if (!existingRecord) return undefined;
+    
+    const updatedRecord: IncomeRecord = { ...updateData, id, description: updateData.description ?? null };
+    this.incomeRecordsStore.set(id, updatedRecord);
+    return updatedRecord;
+  }
+
+  async deleteIncomeRecord(id: number): Promise<boolean> {
+    return this.incomeRecordsStore.delete(id);
+  }
 }
 
 export class DatabaseStorage implements IStorage {
@@ -358,6 +373,20 @@ export class DatabaseStorage implements IStorage {
   async createIncomeRecord(insertRecord: InsertIncomeRecord): Promise<IncomeRecord> {
     const [record] = await db.insert(incomeRecords).values(insertRecord).returning();
     return record;
+  }
+
+  async updateIncomeRecord(id: number, updateData: InsertIncomeRecord): Promise<IncomeRecord | undefined> {
+    const [record] = await db
+      .update(incomeRecords)
+      .set(updateData)
+      .where(eq(incomeRecords.id, id))
+      .returning();
+    return record;
+  }
+
+  async deleteIncomeRecord(id: number): Promise<boolean> {
+    await db.delete(incomeRecords).where(eq(incomeRecords.id, id));
+    return true;
   }
 }
 

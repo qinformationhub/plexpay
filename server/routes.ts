@@ -280,6 +280,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get('/api/income-records/:id', async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const record = await storage.getIncomeRecord(id);
+      
+      if (!record) {
+        return res.status(404).json({ error: "Income record not found" });
+      }
+      
+      res.json(record);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch income record" });
+    }
+  });
+
   app.post('/api/income-records', async (req: Request, res: Response) => {
     try {
       const validated = insertIncomeRecordSchema.parse(req.body);
@@ -290,6 +305,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: error.errors });
       }
       res.status(500).json({ error: "Failed to create income record" });
+    }
+  });
+
+  app.put('/api/income-records/:id', async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const validated = insertIncomeRecordSchema.parse(req.body);
+      const updated = await storage.updateIncomeRecord(id, validated);
+      
+      if (!updated) {
+        return res.status(404).json({ error: "Income record not found" });
+      }
+      
+      res.json(updated);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors });
+      }
+      res.status(500).json({ error: "Failed to update income record" });
+    }
+  });
+
+  app.delete('/api/income-records/:id', async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const success = await storage.deleteIncomeRecord(id);
+      
+      if (!success) {
+        return res.status(404).json({ error: "Income record not found" });
+      }
+      
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete income record" });
     }
   });
 

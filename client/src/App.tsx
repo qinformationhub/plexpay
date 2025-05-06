@@ -9,6 +9,7 @@ import Expenses from "@/pages/expenses";
 import AddExpense from "@/pages/expenses/add";
 import EditExpense from "@/pages/expenses/edit";
 import AddIncome from "@/pages/income/add";
+import EditIncome from "@/pages/income/edit";
 import Users from "@/pages/users";
 import Payroll from "@/pages/payroll";
 import AddEmployee from "@/pages/payroll/add-employee";
@@ -151,6 +152,7 @@ function Router() {
         <Route path="/expenses/add" component={AddExpense} />
         <Route path="/expenses/edit/:id" component={EditExpense} />
         <Route path="/income/add" component={AddIncome} />
+        <Route path="/income/edit/:id" component={EditIncome} />
         <Route path="/payroll" component={Payroll} />
         <Route path="/payroll/add-employee" component={AddEmployee} />
         <Route path="/payroll/employee/:id" component={EmployeeDetails} />

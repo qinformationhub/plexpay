@@ -9,6 +9,8 @@ import TransactionsTable from "@/components/dashboard/TransactionsTable";
 import NotificationsPanel from "@/components/dashboard/NotificationsPanel";
 import { Button } from "@/components/ui/button";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 // Add type for dashboard API response
 type DashboardData = {
@@ -54,7 +56,7 @@ const years = Array.from({ length: 10 }, (_, i) => currentYear - i); // last 10 
 
 export default function Dashboard() {
   const [_, navigate] = useLocation();
-  
+  const { toast } = useToast();
   const [period, setPeriod] = useState("custom");
   const [selectedMonth, setSelectedMonth] = useState(currentMonth);
   const [selectedYear, setSelectedYear] = useState(currentYear);
@@ -63,6 +65,7 @@ export default function Dashboard() {
   const [incomeLimit] = useState(5);
   const [incomeData, setIncomeData] = useState<any[]>([]);
   const [incomeTotal, setIncomeTotal] = useState(0);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
 
   // Build query key and params
   const dashboardQueryKey = period === "custom"
@@ -159,8 +162,20 @@ export default function Dashboard() {
       await apiRequest("DELETE", `/api/income-records/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/dashboard"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/income-records"] });
+      queryClient.invalidateQueries({ queryKey: ['/api/income-records'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/dashboard'] });
+      toast({
+        title: "Income deleted",
+        description: "The income entry has been successfully deleted.",
+      });
+      setConfirmDeleteId(null);
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to delete income entry",
+        variant: "destructive",
+      });
     },
   });
   
@@ -430,11 +445,7 @@ export default function Dashboard() {
                       </button>
                       <button
                         className="inline-flex items-center px-2 py-1 text-xs text-red-600 hover:text-red-900 ml-2"
-                        onClick={() => {
-                          if (window.confirm("Are you sure you want to delete this income entry?")) {
-                            deleteIncomeMutation.mutate(Number(income.id));
-                          }
-                        }}
+                        onClick={() => setConfirmDeleteId(income.id)}
                         title="Delete"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -465,6 +476,30 @@ export default function Dashboard() {
           </button>
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={confirmDeleteId !== null} onOpenChange={(open) => !open && setConfirmDeleteId(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Are you sure?</DialogTitle>
+            <DialogDescription>
+              This will permanently delete this income entry. This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmDeleteId(null)}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => confirmDeleteId && deleteIncomeMutation.mutate(confirmDeleteId)}
+              disabled={deleteIncomeMutation.isPending}
+            >
+              {deleteIncomeMutation.isPending ? "Deleting..." : "Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

@@ -41,6 +41,7 @@ type DashboardData = {
 const periodOptions = [
   { label: "All Time", value: "all" },
   { label: "Custom Month/Year", value: "custom" },
+  { label: "Custom Year", value: "year" },
 ];
 
 const months = [
@@ -60,6 +61,7 @@ export default function Dashboard() {
   const [period, setPeriod] = useState("custom");
   const [selectedMonth, setSelectedMonth] = useState(currentMonth);
   const [selectedYear, setSelectedYear] = useState(currentYear);
+  const [yearOnlyFilter, setYearOnlyFilter] = useState(currentYear);
   const queryClient = useQueryClient();
   const [incomePage, setIncomePage] = useState(1);
   const [incomeLimit] = useState(5);
@@ -70,6 +72,8 @@ export default function Dashboard() {
   // Build query key and params
   const dashboardQueryKey = period === "custom"
     ? ["/api/dashboard", { month: selectedMonth, year: selectedYear }]
+    : period === "year"
+    ? ["/api/dashboard", { yearOnly: yearOnlyFilter }]
     : ["/api/dashboard"];
 
   const { data, isLoading, error, refetch } = useQuery<DashboardData>({
@@ -78,7 +82,11 @@ export default function Dashboard() {
       const [, params] = queryKey as [string, any];
       let url = "/api/dashboard";
       if (params) {
-        url += `?month=${params.month}&year=${params.year}`;
+        if (params.yearOnly !== undefined) {
+          url += `?yearOnly=${params.yearOnly}`;
+        } else {
+          url += `?month=${params.month}&year=${params.year}`;
+        }
       }
       const res = await fetch(url);
       return res.json();
@@ -86,6 +94,9 @@ export default function Dashboard() {
     staleTime: 0,
     refetchInterval: 5000,
     refetchOnWindowFocus: true,
+    refetchOnMount: true,
+    refetchOnReconnect: true,
+    gcTime: 0
   });
   
   const formatCurrency = (value: number) => {
@@ -148,11 +159,13 @@ export default function Dashboard() {
   
   const getIncomeValue = () => {
     if (period === "custom") return data?.metrics.periodIncome || 0;
+    if (period === "year") return data?.metrics.yearlyIncome || 0;
     return data?.metrics.totalIncome || 0;
   };
 
   const getExpenseValue = () => {
     if (period === "custom") return data?.metrics.periodExpenses || 0;
+    if (period === "year") return data?.metrics.yearlyExpenses || 0;
     return data?.metrics.totalExpenses || 0;
   };
   
@@ -169,6 +182,11 @@ export default function Dashboard() {
         description: "The income entry has been successfully deleted.",
       });
       setConfirmDeleteId(null);
+      setTimeout(() => {
+        if (incomeData.length === 1 && incomePage > 1) {
+          setIncomePage(p => Math.max(1, p - 1));
+        }
+      }, 0);
     },
     onError: (error) => {
       toast({
@@ -180,7 +198,7 @@ export default function Dashboard() {
   });
   
   useEffect(() => {
-    fetch(`/api/income-records?page=${incomePage}&limit=${incomeLimit}`)
+    fetch(`/api/income-records?page=${Math.max(1, incomePage)}&limit=${incomeLimit}`)
       .then(res => res.json())
       .then(res => {
         if (Array.isArray(res)) {
@@ -297,6 +315,20 @@ export default function Dashboard() {
                 </select>
               </>
             )}
+            {period === "year" && (
+              <>
+                <span className="font-semibold text-gray-700">Year:</span>
+                <select
+                  value={yearOnlyFilter}
+                  onChange={e => setYearOnlyFilter(Number(e.target.value))}
+                  className="border border-gray-300 rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-primary/30 bg-gray-50 text-gray-700"
+                >
+                  {years.map(y => (
+                    <option key={y} value={y}>{y}</option>
+                  ))}
+                </select>
+              </>
+            )}
           </div>
           {/* Right side: Apply button */}
           <div className="flex justify-end w-full md:w-auto">
@@ -313,6 +345,8 @@ export default function Dashboard() {
           <MetricsCard
             title={period === "custom"
               ? `Total Income (${months[selectedMonth]} ${selectedYear})`
+              : period === "year"
+              ? `Total Income (${yearOnlyFilter})`
               : "Total Income (All Time)"}
             value={formatCurrency(getIncomeValue())}
             icon={
@@ -324,7 +358,11 @@ export default function Dashboard() {
             change={{
               value: "",
               type: "neutral",
-              text: period === "custom" ? `${months[selectedMonth]} ${selectedYear}` : "All Time"
+              text: period === "custom" 
+                ? `${months[selectedMonth]} ${selectedYear}`
+                : period === "year"
+                ? `${yearOnlyFilter}`
+                : "All Time"
             }}
             addButton={
               <Button
@@ -343,6 +381,8 @@ export default function Dashboard() {
           <MetricsCard
             title={period === "custom"
               ? `Total Expenses (${months[selectedMonth]} ${selectedYear})`
+              : period === "year"
+              ? `Total Expenses (${yearOnlyFilter})`
               : "Total Expenses (All Time)"}
             value={formatCurrency(getExpenseValue())}
             icon={<CreditCard className="h-6 w-6 text-red-500" />}
@@ -350,31 +390,30 @@ export default function Dashboard() {
             change={{
               value: "",
               type: "neutral",
-              text: period === "custom" ? `${months[selectedMonth]} ${selectedYear}` : "All Time"
+              text: period === "custom" 
+                ? `${months[selectedMonth]} ${selectedYear}`
+                : period === "year"
+                ? `${yearOnlyFilter}`
+                : "All Time"
             }}
           />
         </div>
         <MetricsCard
-          title="Current Balance"
-          value={formatCurrency(data?.metrics.currentBalance || 0)}
+          title="Current Balance (All Time)"
+          value={formatCurrency((data?.metrics.totalIncome ?? 0) - (data?.metrics.totalExpenses ?? 0))}
           icon={<BarChart3 className="h-6 w-6 text-blue-800" />}
           iconBgColor="bg-blue-100"
-          // change={{
-          //   value: "22.5%",
-          //   type: "neutral",
-          //   text: "+22.5% from last period"
-          // }}
+          change={{
+            value: "",
+            type: "neutral",
+            text: "All Time"
+          }}
         />
         <MetricsCard
           title="Pending Payroll"
           value={formatCurrency(data?.metrics.pendingPayroll || 0)}
           icon={<Users className="h-6 w-6 text-warning" />}
           iconBgColor="bg-orange-100"
-          // change={{
-          //   value: "5",
-          //   type: "neutral",
-          //   text: "Due in 5 days"
-          // }}
         />
       </div>
       
@@ -462,15 +501,15 @@ export default function Dashboard() {
           <button
             className="flex items-center gap-1 px-4 py-2 rounded-lg border border-gray-300 bg-white shadow-sm text-gray-700 hover:bg-primary hover:text-white transition disabled:opacity-50"
             onClick={() => setIncomePage(p => Math.max(1, p - 1))}
-            disabled={incomePage === 1}
+            disabled={incomePage === 1 || incomeTotal === 0}
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
-          <span className="mx-2 text-sm">Page {incomePage} of {totalPages}</span>
+          <span className="mx-2 text-sm">Page {incomePage} of {Math.max(1, totalPages)}</span>
           <button
             className="flex items-center gap-1 px-4 py-2 rounded-lg border border-gray-300 bg-white shadow-sm text-gray-700 hover:bg-primary hover:text-white transition disabled:opacity-50"
             onClick={() => setIncomePage(p => Math.min(totalPages, p + 1))}
-            disabled={incomePage === totalPages}
+            disabled={incomePage === totalPages || incomeTotal === 0}
           >
             <ChevronRight className="h-4 w-4" />
           </button>

@@ -65,11 +65,11 @@ export default function ExpenseReport() {
   });
   const [categoryFilter, setCategoryFilter] = useState("all");
   
-  const { data: expenses, isLoading: expensesLoading } = useQuery({
+  const { data: expenses = [], isLoading: expensesLoading } = useQuery<any[]>({
     queryKey: ['/api/expenses'],
   });
   
-  const { data: categories, isLoading: categoriesLoading } = useQuery({
+  const { data: categories = [], isLoading: categoriesLoading } = useQuery<any[]>({
     queryKey: ['/api/expense-categories'],
   });
   
@@ -88,7 +88,7 @@ export default function ExpenseReport() {
   };
   
   // Filter expenses by date range and category
-  const filteredExpenses = expenses ? expenses.filter((expense: any) => {
+  const filteredExpenses = expenses.filter((expense: any) => {
     const expenseDate = new Date(expense.date);
     const inDateRange = (!dateRange.from || expenseDate >= dateRange.from) &&
                       (!dateRange.to || expenseDate <= dateRange.to);
@@ -97,7 +97,7 @@ export default function ExpenseReport() {
       expense.categoryId === parseInt(categoryFilter);
     
     return inDateRange && matchesCategory;
-  }) : [];
+  });
   
   // Calculate total amount
   const totalAmount = filteredExpenses.reduce((sum: number, expense: any) => {

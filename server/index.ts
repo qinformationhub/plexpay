@@ -56,7 +56,9 @@ export default app;
 
 if (process.env.NODE_ENV !== "production") {
   const port = process.env.PORT || 3000;
+  console.log("About to listen on port", port);
   app.listen(port, () => {
     log(`serving on port ${port}`);
+    console.log(`Express server started on port ${port}`);
   });
 }

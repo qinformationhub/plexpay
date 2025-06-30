@@ -5,12 +5,12 @@
     "incremental": true,
     "tsBuildInfoFile": "./node_modules/typescript/tsbuildinfo",
     "noEmit": true,
-    "module": "CommonJS",
+    "module": "esnext",
     "strict": true,
     "lib": ["esnext", "dom", "dom.iterable"],
     "jsx": "preserve",
     "esModuleInterop": true,
-    "target": "ES6",
+    "target": "esnext",
     "skipLibCheck": true,
     "allowImportingTsExtensions": true,
     "moduleResolution": "node",
@@ -19,6 +19,11 @@
     "paths": {
       "@/*": ["./client/src/*"],
       "@shared/*": ["./shared/*"]
-    }
+    },
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "outDir": "dist",
+    "forceConsistentCasingInFileNames": true
   }
 }

@@ -4,7 +4,7 @@ import cors from "cors";
 import compression from "compression";
 import helmet from "helmet";
 import { registerRoutes } from "./routes";
-import { setupVite, serveStatic, log } from "./vite";
+import { log } from "./vite"; // Only if log is not using vite
 
 const app = express();
 

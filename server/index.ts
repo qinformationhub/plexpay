@@ -3,6 +3,8 @@ import express, { type Request, Response, NextFunction } from "express";
 import cors from "cors";
 import compression from "compression";
 import helmet from "helmet";
+import path from "path";
+import fs from "fs";
 import { registerRoutes } from "./routes";
 import { log } from "./vite"; // Only if log is not using vite
 
@@ -102,8 +104,21 @@ app.use((req, res, next) => {
     const { setupVite } = await import("./vite");
     await setupVite(app, server);
   } else {
-    const { serveStatic } = await import("./vite");
-    serveStatic(app);
+    // In production, serve static files directly without vite
+    const distPath = path.resolve(process.cwd(), "dist", "public");
+    
+    if (!fs.existsSync(distPath)) {
+      throw new Error(
+        `Could not find the build directory: ${distPath}, make sure to build the client first`,
+      );
+    }
+
+    app.use(express.static(distPath));
+
+    // fall through to index.html for all non-API routes
+    app.use("*", (req, res) => {
+      res.sendFile(path.resolve(distPath, "index.html"));
+    });
   }
 
   // ALWAYS serve the app on port 5001

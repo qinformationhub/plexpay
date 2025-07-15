@@ -75,8 +75,10 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Register API routes first
   const server = await registerRoutes(app);
 
+  // Error handling middleware
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
@@ -85,9 +87,16 @@ app.use((req, res, next) => {
     throw err;
   });
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
+  // Add a middleware to ensure API routes are not handled by static serving
+  app.use((req, res, next) => {
+    if (req.path.startsWith('/api/')) {
+      // If we reach here, it means no API route matched
+      return res.status(404).json({ error: "API endpoint not found" });
+    }
+    next();
+  });
+
+  // Setup static file serving based on environment
   if (process.env.NODE_ENV === "development") {
     // Only import vite in development
     const { setupVite } = await import("./vite");

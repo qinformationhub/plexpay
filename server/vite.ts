@@ -18,7 +18,17 @@ export function log(message: string, source = "express") {
 export async function setupVite(app: Express, server: Server) {
   // Only import vite in development
   const { createServer: createViteServer, createLogger } = await import("vite");
-  const viteConfig = await import("../vite.config");
+  
+  // Import vite config only in development
+  let viteConfig = {};
+  if (process.env.NODE_ENV === "development") {
+    try {
+      const configModule = await import("../vite.config");
+      viteConfig = configModule.default || configModule;
+    } catch (error) {
+      console.warn("Could not load vite config:", error);
+    }
+  }
   
   const viteLogger = createLogger();
 
@@ -28,7 +38,7 @@ export async function setupVite(app: Express, server: Server) {
   };
 
   const vite = await createViteServer({
-    ...viteConfig.default,
+    ...viteConfig,
     configFile: false,
     customLogger: {
       ...viteLogger,

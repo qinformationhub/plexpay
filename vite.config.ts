@@ -40,11 +40,34 @@ export default defineConfig({
           ui: ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-select'],
           charts: ['recharts'],
           forms: ['react-hook-form', '@hookform/resolvers', 'zod']
-        }
+        },
+        // Optimize for memory usage
+        chunkFileNames: 'assets/[name]-[hash].js',
+        entryFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash].[ext]'
       }
     },
     sourcemap: false,
     minify: 'terser',
-    target: 'es2020'
+    target: 'es2020',
+    // Memory optimization settings
+    chunkSizeWarningLimit: 1000,
+    // Reduce memory usage during build
+    reportCompressedSize: false,
+    // Disable source maps to save memory
+    cssCodeSplit: false,
+    // Disable CSS splitting to save memory
+    assetsInlineLimit: 4096,
+    // Disable minification temporarily to save memory
+    minify: false
   },
+  // Optimize for low memory environments
+  optimizeDeps: {
+    include: ['react', 'react-dom'],
+    exclude: ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-select']
+  },
+  // Disable features that consume memory
+  esbuild: {
+    logOverride: { 'this-is-undefined-in-esm': 'silent' }
+  }
 });

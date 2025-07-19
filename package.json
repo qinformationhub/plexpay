@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "NODE_ENV=development tsx server/index.ts",
     "build": "node build.js",
-    "build:client": "vite build",
+    "build:low-memory": "node build-simple.js",
+    "build:client": "NODE_OPTIONS='--max-old-space-size=256 --expose-gc' vite build",
     "build:server": "esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
     "start": "NODE_ENV=production node dist/index.js",
     "check": "tsc",

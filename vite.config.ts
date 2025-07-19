@@ -48,7 +48,6 @@ export default defineConfig({
       }
     },
     sourcemap: false,
-    minify: 'terser',
     target: 'es2020',
     // Memory optimization settings
     chunkSizeWarningLimit: 1000,
